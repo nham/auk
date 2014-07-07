@@ -1,0 +1,43 @@
+# Adapted from Bryan Ford's paper: "Parsing Expression 
+# Grammars: A Recognition-Based Syntactic Foundation"
+
+# Hierarchical syntax
+Grammar    = SP (Definition SP)+ EndOfFile
+Definition = Identifier SP '=' SP Expression
+
+Expression = Sequence (SP '/' SP Sequence)*
+Sequence   = (PRED? SP Primary SP AMOUNT?)*
+Primary    = Identifier !(SP '=')
+            / '(' SP Expression SP ')'
+            / Literal
+            / Class
+            / '.'
+
+# Lexical syntax
+Identifier = IdentStart IdentSym*
+IdentStart = [a-zA-Z_]
+IdentSym   = IdentStart / [0-9]
+
+Literal    = QUOTE (!QUOTE Char)* QUOTE
+            / DQUOTE (!DQUOTE Char)* DQUOTE
+
+Class      = LSQUARE (!RSQUARE Range)* RSQUARE
+Range      = Char '-' Char / Char
+Char       = '\\' [nrt'"\[\]\\]
+            / '\\' [0-2][0-7][0-7]
+            / '\\' [0-7][0-7]?
+            / !'\\' .
+
+AMOUNT = '?' / '*' / '+'
+PRED   = '&' / '!'
+
+LSQUARE   = '['
+RSQUARE   = ']'
+QUOTE     = [']
+DQUOTE    = ["]
+
+SP = (Space / Comment)*
+Comment = '#' (!EndOfLine .)* EndOfLine
+Space   = ' ' / '\t' / EndOfLine
+EndOfLine = '\r\n' / '\n' / '\r'
+EndOfFile = !.
