@@ -89,6 +89,16 @@ where T: Eq + Clone,
                             (j, rem2) => (i + j + 1, rem2),
                         },
                 },
+            PosLookahead(ref a) =>
+                match self.parse(&**a, input) {
+                    (i, None) => (i + 1, None),
+                    (i, _) => (i + 1, Some(input)),
+                },
+            NegLookahead(ref a) =>
+                match self.parse(&**a, input) {
+                    (i, None) => (i + 1, Some(input)),
+                    (i, _) => (i + 1, None),
+                },
             _ => fail!("unimplemented"),
         }
     }
