@@ -15,17 +15,13 @@ Primary    = Identifier !(SP '=')
 
 # Lexical syntax
 Identifier = IdentStart IdentSym*
-IdentStart = [a-zA-Z_]
-IdentSym   = IdentStart / [0-9]
+IdentStart = [abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]
+IdentSym   = IdentStart / [0123456789]
 
 Literal    = QUOTE (!QUOTE Char)* QUOTE
-            / DQUOTE (!DQUOTE Char)* DQUOTE
 
-Class      = LSQUARE (!RSQUARE Range)* RSQUARE
-Range      = Char '-' Char / Char
+Class      = LSQUARE (!RSQUARE Char)* RSQUARE
 Char       = '\\' [nrt'"\[\]\\]
-            / '\\' [0-2][0-7][0-7]
-            / '\\' [0-7][0-7]?
             / !'\\' .
 
 AMOUNT = '?' / '*' / '+'
@@ -34,7 +30,6 @@ PRED   = '&' / '!'
 LSQUARE   = '['
 RSQUARE   = ']'
 QUOTE     = [']
-DQUOTE    = ["]
 
 SP = (Space / Comment)*
 Comment = '#' (!EndOfLine .)* EndOfLine
