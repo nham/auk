@@ -72,6 +72,22 @@ where T: Eq + Clone,
                     (i, None) => (i + 2, Some(input)),
                     (i, rem) => (i + 1, rem),
                 },
+            Star(ref a) =>
+                match self.parse(&**a, input) {
+                    (i, None) => (i + 1, Some(input)),
+                    (i, Some(rem)) =>
+                        match self.parse(expr, rem) {
+                            (j, rem2) => (i + j + 1, rem2),
+                        },
+                },
+            Plus(ref a) => // Plus(e) = Seq(e, Star(e))
+                match self.parse(&**a, input) {
+                    (i, None) => (i + 1, None),
+                    (i, Some(rem)) =>
+                        match self.parse(expr, rem) {
+                            (j, rem2) => (i + j + 1, rem2),
+                        },
+                },
             _ => fail!("unimplemented"),
         }
     }
