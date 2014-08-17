@@ -51,6 +51,27 @@ where T: Eq + Clone,
                     [_, ..rest] => (1, Some(rest)),
                     _ => (1, None),
                 },
+            Seq(ref a, ref b) =>
+                match self.parse(&**a, input) {
+                    (i, None) => (i + 1, None),
+                    (i, Some(rem)) =>
+                        match self.parse(&**b, rem) {
+                            (j, rem2) => (i + j + 1, rem2),
+                        },
+                },
+            Alt(ref a, ref b) =>
+                match self.parse(&**a, input) {
+                    (i, None) =>
+                        match self.parse(&**b, input) {
+                            (j, rem) => (i + j + 1, rem),
+                        },
+                    (i, rem) => (i + 1, rem),
+                },
+            Question(ref a) => // Question(e) = Alt(e, Empty)
+                match self.parse(&**a, input) {
+                    (i, None) => (1, Some(input)),
+                    (i, rem) => (i + 1, rem),
+                },
             _ => fail!("unimplemented"),
         }
     }
