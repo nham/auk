@@ -1,27 +1,14 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use std::hash;
 
-// T = terminals, N = non-terminals
-enum PEGExpr<T, N> {
-    Empty,
-    Terminal(T),
-    Nonterminal(N),
-    Dot,
-    Class(HashSet<T>),
-    Seq(Box<PEGExpr<T, N>>, Box<PEGExpr<T, N>>),
-    Alt(Box<PEGExpr<T, N>>, Box<PEGExpr<T, N>>),
-    Question(Box<PEGExpr<T, N>>),
-    Star(Box<PEGExpr<T, N>>),
-    Plus(Box<PEGExpr<T, N>>),
-    PosLookahead(Box<PEGExpr<T, N>>), // & predicate in Ford's paper
-    NegLookahead(Box<PEGExpr<T, N>>), // ! predicate in Ford's paper
-}
+use expr::{PEGExpr, Empty, Terminal, Nonterminal, Dot, Seq, Alt, Class,
+           Question, Star, Plus, PosLookahead, NegLookahead};
+
+mod expr;
 
 struct PEGGrammar<T, N> {
     rules: HashMap<N, PEGExpr<T, N>>,
 }
-
-type Expr = PEGExpr<char, char>;
 
 type ParseResult<'a, T> = (uint, Option<&'a [T]>);
 
@@ -108,6 +95,6 @@ where T: Eq + Clone + hash::Hash,
 }
 
 fn main() {
-    let e: Expr = Seq(box Terminal('a'), box Terminal('b'));
+    //let e: Expr = Seq(box Terminal('a'), box Terminal('b'));
     //println!("{}", e);
 }
