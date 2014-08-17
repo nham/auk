@@ -1,14 +1,13 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash;
 
 // T = terminals, N = non-terminals
-#[deriving(Show)]
 enum PEGExpr<T, N> {
     Empty,
     Terminal(T),
     Nonterminal(N),
     Dot,
-    Class(Vec<T>), // could be eliminated. it's syntactic sugar for a bunch of Alts
+    Class(HashSet<T>),
     Seq(Box<PEGExpr<T, N>>, Box<PEGExpr<T, N>>),
     Alt(Box<PEGExpr<T, N>>, Box<PEGExpr<T, N>>),
     Question(Box<PEGExpr<T, N>>),
@@ -27,7 +26,7 @@ type Expr = PEGExpr<char, char>;
 type ParseResult<'a, T> = (uint, Option<&'a [T]>);
 
 impl<T, N> PEGGrammar<T, N>
-where T: Eq + Clone,
+where T: Eq + Clone + hash::Hash,
       N: Eq + hash::Hash {
 
     // In contrast to Ford's paper, we return the unconsumed input as second
@@ -67,6 +66,11 @@ where T: Eq + Clone,
                         },
                     (i, rem) => (i + 1, rem),
                 },
+            Class(ref s) =>
+                match input {
+                    [ref a, ..rest] if s.contains(a) => (1, Some(rest)),
+                    _ => (1, None),
+                },
             Question(ref a) => // Question(e) = Alt(e, Empty)
                 match self.parse(&**a, input) {
                     (i, None) => (i + 2, Some(input)),
@@ -99,12 +103,11 @@ where T: Eq + Clone,
                     (i, None) => (i + 1, Some(input)),
                     (i, _) => (i + 1, None),
                 },
-            _ => fail!("unimplemented"),
         }
     }
 }
 
 fn main() {
     let e: Expr = Seq(box Terminal('a'), box Terminal('b'));
-    println!("{}", e);
+    //println!("{}", e);
 }
