@@ -23,16 +23,20 @@ struct PEGGrammar<T, N> {
 
 type Expr = PEGExpr<char, char>;
 
-fn parse<'a, T, N>(expr: &PEGExpr<T,N>, input: &'a [T]) -> (uint, Option<&'a [T]>)
+type ParseResult<'a, T> = (uint, Option<&'a [T]>);
+
+impl<T, N> PEGGrammar<T, N>
 where T: Eq + Clone {
-    match *expr {
-        Empty => (1, Some(input)),
-        Terminal(ref t) =>
-            match input {
-                [ref a, ..rest] if a == t => (1, Some(rest)),
-                _ => (1, None),
-            },
-        _ => fail!("unimplemented"),
+    fn parse<'a>(&self, expr: &PEGExpr<T,N>, input: &'a [T]) -> ParseResult<'a, T> {
+        match *expr {
+            Empty => (1, Some(input)),
+            Terminal(ref t) =>
+                match input {
+                    [ref a, ..rest] if a == t => (1, Some(rest)),
+                    _ => (1, None),
+                },
+            _ => fail!("unimplemented"),
+        }
     }
 }
 
