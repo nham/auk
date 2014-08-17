@@ -69,7 +69,7 @@ where T: Eq + Clone,
                 },
             Question(ref a) => // Question(e) = Alt(e, Empty)
                 match self.parse(&**a, input) {
-                    (i, None) => (1, Some(input)),
+                    (i, None) => (i + 2, Some(input)),
                     (i, rem) => (i + 1, rem),
                 },
             _ => fail!("unimplemented"),
