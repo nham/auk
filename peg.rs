@@ -85,6 +85,7 @@ where T: Eq + Clone,
                     (i, None) => (i + 1, None),
                     (i, Some(rem)) =>
                         match self.parse(expr, rem) {
+                            (j, None) => (i + j + 1, Some(rem)),
                             (j, rem2) => (i + j + 1, rem2),
                         },
                 },
