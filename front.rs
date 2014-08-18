@@ -1,19 +1,15 @@
-
-use expr::PEGExpr;
+use expr::Expression;
 use libsyn;
 
 pub struct Grammar {
-    name: libsyn::Ident,
-    rules: Vec<Rule>,
+    pub name: libsyn::Ident,
+    pub rules: Vec<Rule>,
 }
 
 pub struct Rule {
-    name: libsyn::Ident,
-    def: Box<Expression>
+    pub name: libsyn::Ident,
+    pub expr: Box<Expression>
 }
-
-type Expression = PEGExpr<char, libsyn::Ident>;
-
 
 pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
     if !consume_grammar_keyword(parser) {

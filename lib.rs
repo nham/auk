@@ -5,12 +5,14 @@ extern crate rustc;
 extern crate syntax;
 
 use front::parse_grammar;
+use middle::convert;
 
 use rustc::plugin::Registry;
 
-mod libsyn;
 mod expr;
 mod front;
+mod libsyn;
+mod middle;
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
@@ -28,5 +30,9 @@ fn expand(
                                                Vec::from_slice(tts));
 
   let grammar = parse_grammar(&mut parser);
+
+  match convert(grammar) {
+      _ => fail!("Unimplemented"),
+  }
 
 }

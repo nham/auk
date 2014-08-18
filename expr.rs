@@ -1,5 +1,9 @@
 use std::collections::HashSet;
 
+use libsyn;
+
+pub type Expression = PEGExpr<char, libsyn::Ident>;
+
 // T = terminals, N = non-terminals
 pub enum PEGExpr<T, N> {
     Empty,
