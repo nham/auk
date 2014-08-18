@@ -4,6 +4,7 @@
 extern crate rustc;
 extern crate syntax;
 
+use expr::PEGExpr;
 use util::ident_to_str;
 
 use rustc::plugin::Registry;
@@ -27,6 +28,24 @@ fn expand(
                                                cx.cfg(),
                                                Vec::from_slice(tts));
 
+  let grammar = parse_grammar(&mut parser);
+
+}
+
+fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
+    if !consume_grammar_keyword(parser) {
+        let span = parser.span;
+        parser.span_fatal(span,
+            format!("Expected grammar declaration of the form `grammar <name> \
+                    {{...}}` but found `{}`", parser.this_token_to_string()
+                   ).as_slice());
+    }
+
+    let name = parser.parse_ident();
+    parser.expect(&libsyn::LBRACE);
+    //thing goes here
+    parser.expect(&libsyn::RBRACE);
+    Grammar { name: name, rules: vec!() }
 }
 
 fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
@@ -39,3 +58,16 @@ fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
         _ => false,
     }
 }
+
+
+pub struct Grammar {
+    name: libsyn::Ident,
+    rules: Vec<Rule>,
+}
+
+pub struct Rule {
+    name: libsyn::Ident,
+    def: Box<Expression>
+}
+
+type Expression = PEGExpr<char, libsyn::Ident>;
