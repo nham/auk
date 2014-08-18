@@ -11,7 +11,6 @@ use rustc::plugin::Registry;
 mod libsyn;
 mod expr;
 mod front;
-mod util;
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {

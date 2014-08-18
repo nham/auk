@@ -1,7 +1,6 @@
 
 use expr::PEGExpr;
 use libsyn;
-use util::ident_to_str;
 
 pub struct Grammar {
     name: libsyn::Ident,
@@ -18,11 +17,11 @@ type Expression = PEGExpr<char, libsyn::Ident>;
 
 pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
     if !consume_grammar_keyword(parser) {
+        let tok = parser.this_token_to_string();
         let span = parser.span;
         parser.span_fatal(span,
             format!("Expected grammar declaration of the form `grammar <name> \
-                    {{...}}` but found `{}`", parser.this_token_to_string()
-                   ).as_slice());
+                    {{...}}` but found `{}`", tok).as_slice());
     }
 
     let name = parser.parse_ident();
@@ -35,7 +34,7 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
 fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
     // the second value attached to IDENT is the "is_mod_name" flag
     match parser.token {
-        libsyn::IDENT(ident, false) if "grammar" == ident_to_str(ident) => {
+        libsyn::IDENT(ident, false) if "grammar" == libsyn::get_ident(ident).get() => {
             parser.bump();
             true
         },
