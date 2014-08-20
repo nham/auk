@@ -1,0 +1,16 @@
+[package]
+
+name = "auk"
+version = "0.0.1"
+authors = ["Nick Hamann"]
+
+[[lib]]
+
+name = "auk"
+path = "src/lib.rs"
+crate_type = ["dylib"]
+
+[[bin]]
+
+name = "auk_test"
+path = "src/test.rs"
