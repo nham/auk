@@ -6,6 +6,8 @@ extern crate syntax;
 
 use front::parse_grammar;
 use middle::convert;
+pub use peg::PEGGrammar;
+pub use expr::Empty;
 
 use rustc::plugin::Registry;
 
@@ -13,6 +15,7 @@ mod expr;
 mod front;
 mod libsyn;
 mod middle;
+mod peg;
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
@@ -32,7 +35,11 @@ fn expand(
   let grammar = parse_grammar(&mut parser);
 
   match convert(grammar) {
-      _ => fail!("Unimplemented"),
+      None => fail!("Conversion didn't work."),
+      Some(_) => { // TODO: have to actually generate things
+          let qi = quote_expr!(cx, auk::PEGGrammar::new());
+          libsyn::MacExpr::new( qi )
+      },
   }
 
 }
