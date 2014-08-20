@@ -1,15 +1,10 @@
-extern crate syntax;
-
 use std::collections::{HashMap};
 use std::hash;
 
 use expr::{PEGExpr, Empty, Terminal, Nonterminal, Dot, Seq, Alt, Class,
            Question, Star, Plus, PosLookahead, NegLookahead};
 
-mod expr;
-mod libsyn;
-
-struct PEGGrammar<T, N> {
+pub struct PEGGrammar<T, N> {
     rules: HashMap<N, PEGExpr<T, N>>,
 }
 
@@ -17,8 +12,12 @@ type ParseResult<'a, T> = (uint, Option<&'a [T]>);
 
 impl<T, N> PEGGrammar<T, N>
     where N: Eq + hash::Hash {
-    fn new() -> PEGGrammar<T, N> {
+    pub fn new() -> PEGGrammar<T, N> {
         PEGGrammar { rules: HashMap::new() }
+    }
+
+    pub fn with_rules(map: HashMap<N, PEGExpr<T, N>>) -> PEGGrammar<T, N> {
+        PEGGrammar { rules: map }
     }
 }
 
@@ -28,7 +27,7 @@ where T: Eq + Clone + hash::Hash,
 
     // In contrast to Ford's paper, we return the unconsumed input as second
     // component, not the consumed input.
-    fn parse<'a>(&self, expr: &PEGExpr<T,N>, input: &'a [T]) -> ParseResult<'a, T> {
+    pub fn parse<'a>(&self, expr: &PEGExpr<T,N>, input: &'a [T]) -> ParseResult<'a, T> {
         match *expr {
             Empty => (1, Some(input)),
             Terminal(ref t) =>
@@ -104,6 +103,7 @@ where T: Eq + Clone + hash::Hash,
     }
 }
 
+/*
 fn main() {
     //let e: Expr = Seq(box Terminal('a'), box Terminal('b'));
     //println!("{}", e);
@@ -113,3 +113,4 @@ fn main() {
     println!("{}", g.parse(&Terminal('h'), &['h', 'e', 'l', 'l', 'o']));
     println!("{}", g.parse(&Terminal('z'), &['h', 'e', 'l', 'l', 'o']));
 }
+*/
