@@ -1,3 +1,5 @@
+extern crate syntax;
+
 use std::collections::{HashMap};
 use std::hash;
 
@@ -5,12 +7,20 @@ use expr::{PEGExpr, Empty, Terminal, Nonterminal, Dot, Seq, Alt, Class,
            Question, Star, Plus, PosLookahead, NegLookahead};
 
 mod expr;
+mod libsyn;
 
 struct PEGGrammar<T, N> {
     rules: HashMap<N, PEGExpr<T, N>>,
 }
 
 type ParseResult<'a, T> = (uint, Option<&'a [T]>);
+
+impl<T, N> PEGGrammar<T, N>
+    where N: Eq + hash::Hash {
+    fn new() -> PEGGrammar<T, N> {
+        PEGGrammar { rules: HashMap::new() }
+    }
+}
 
 impl<T, N> PEGGrammar<T, N>
 where T: Eq + Clone + hash::Hash,
@@ -97,4 +107,9 @@ where T: Eq + Clone + hash::Hash,
 fn main() {
     //let e: Expr = Seq(box Terminal('a'), box Terminal('b'));
     //println!("{}", e);
+    let g: PEGGrammar<char, String> = PEGGrammar::new();
+
+    println!("{}", g.parse(&Empty, &['h', 'e', 'l', 'l', 'o']));
+    println!("{}", g.parse(&Terminal('h'), &['h', 'e', 'l', 'l', 'o']));
+    println!("{}", g.parse(&Terminal('z'), &['h', 'e', 'l', 'l', 'o']));
 }
