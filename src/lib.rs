@@ -37,7 +37,15 @@ fn expand(
   match convert(grammar) {
       None => fail!("Conversion didn't work."),
       Some(_) => { // TODO: have to actually generate things
-          let qi = quote_expr!(cx, auk::PEGGrammar::new());
+          let qi = quote_expr!(cx,
+                       {
+                           let x = 5u; let y = 7 + x; auk::PEGGrammar::new()
+                       });
+          match qi.node {
+              libsyn::ExprBlock(_) => println!("BLOCK"),
+              _ => println!("NOP"),
+          }
+
           libsyn::MacExpr::new( qi )
       },
   }
