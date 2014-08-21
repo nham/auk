@@ -18,7 +18,7 @@ enum Expression_<N> {
     Class(HashSet<char>),
 }
 
-pub type Expression = Expression_<char, libsyn::Ident>;
+pub type Expression = Expression_<libsyn::Ident>;
 
 pub struct Grammar {
     pub name: libsyn::Ident,
@@ -41,7 +41,7 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
 
     let name = parser.parse_ident();
     parser.expect(&libsyn::LBRACE);
-    parse_rule(parser)
+    parse_rule(parser);
     //thing goes here
     parser.expect(&libsyn::RBRACE);
     Grammar { name: name, rules: vec!() }
@@ -69,15 +69,15 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::BINOP(libsyn::AND) => {
             parser.bump();
-            return PosLookahead(parse_rule_expr(parser));
+            return PosLookahead(box parse_rule_expr(parser));
         },
         libsyn::NOT => {
             parser.bump();
-            return NegLookahead(parse_rule_expr(parser));
+            return NegLookahead(box parse_rule_expr(parser));
         },
         libsyn::LIT_CHAR(name) => {
             parser.bump();
-            return Terminal( rust::get_name(name).get().char_at(0) );
+            return Terminal( libsyn::get_name(name).get().char_at(0) );
         },
         _ => {
             fail!("Unimplemented");
