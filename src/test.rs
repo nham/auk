@@ -4,12 +4,13 @@
 extern crate auk;
 
 fn main() {
-    let g: auk::PEGGrammar<char, String> =
-        auk!(
-            grammar foo {
-                start = 'd'
-            });
+    auk!(
+        grammar foo {
+            start = 'd'
+        }
+    )
 
-    println!("{}", g("dog"));
-    println!("{}", g("cat"));
+    println!("{}", parse_dot("dog"));
+    println!("{}", parse_dot("cat"));
+    println!("{}", parse_dot(""));
 }

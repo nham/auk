@@ -37,16 +37,18 @@ fn expand(
   match convert(grammar) {
       None => fail!("Conversion didn't work."),
       Some(_) => { // TODO: have to actually generate things
-          let qi = quote_expr!(cx,
-                       {
-                           let x = 5u; let y = 7 + x; auk::PEGGrammar::new()
-                       });
-          match qi.node {
-              libsyn::ExprBlock(_) => println!("BLOCK"),
-              _ => println!("NOP"),
-          }
+          let qi = quote_item!(cx,
+                    fn parse_dot<'a>(input: &'a str) -> Result<&'a str, String> {
+                        if input.len() > 0 {
+                            let n = input.char_range_at(0).next;
+                            Ok(input.slice_from(n))
+                        } else {
+                            Err(format!("Could not match '.' (end of input)"))
+                        }
+                    }
+                       );
 
-          libsyn::MacExpr::new( qi )
+          libsyn::MacItem::new( qi.unwrap() )
       },
   }
 
