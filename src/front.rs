@@ -1,5 +1,24 @@
-use expr::Expression;
+use std::collections::HashSet;
+
 use libsyn;
+
+enum Expression_<N> {
+    Empty,
+    Terminal(char),
+    AnyTerminal, // any terminal
+    TerminalString(String), // not in Ford's paper. more compact than a Seq of terminals
+    Nonterminal(N),
+    Seq(Vec<Expression_<N>>),
+    Alt(Vec<Expression_<N>>),
+    Optional(Box<Expression_<N>>), // ?
+    ZeroOrMore(Box<Expression_<N>>), // *
+    OneOrMore(Box<Expression_<N>>), // +
+    PosLookahead(Box<Expression_<N>>), // & predicate in Ford's paper
+    NegLookahead(Box<Expression_<N>>), // ! predicate in Ford's paper
+    Class(HashSet<char>),
+}
+
+pub type Expression = Expression_<char, libsyn::Ident>;
 
 pub struct Grammar {
     pub name: libsyn::Ident,
@@ -22,6 +41,7 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
 
     let name = parser.parse_ident();
     parser.expect(&libsyn::LBRACE);
+    parse_rule(parser)
     //thing goes here
     parser.expect(&libsyn::RBRACE);
     Grammar { name: name, rules: vec!() }
@@ -35,5 +55,32 @@ fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
             true
         },
         _ => false,
+    }
+}
+
+fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
+    let name = parser.parse_ident();
+    parser.expect(&libsyn::EQ);
+    Rule { name: name, expr: box parse_rule_expr(parser) }
+}
+
+fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
+    // first we check for a ! or & predicate
+    match parser.token {
+        libsyn::BINOP(libsyn::AND) => {
+            parser.bump();
+            return PosLookahead(parse_rule_expr(parser));
+        },
+        libsyn::NOT => {
+            parser.bump();
+            return NegLookahead(parse_rule_expr(parser));
+        },
+        libsyn::LIT_CHAR(name) => {
+            parser.bump();
+            return Terminal( rust::get_name(name).get().char_at(0) );
+        },
+        _ => {
+            fail!("Unimplemented");
+        },
     }
 }
