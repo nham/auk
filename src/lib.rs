@@ -34,10 +34,14 @@ fn expand(
   match convert(grammar) {
       None => fail!("Conversion didn't work."),
       Some(g) => { // TODO: have to actually generate things
+
+          let parse_func_str = "parse_".to_string() + g.start.as_str();
+          let parse_func = libsyn::Ident::new(libsyn::intern(parse_func_str.as_slice()));
+
           let qi = match *g.rules.find(&g.start).unwrap() {
               Terminal(c) => {
                   quote_item!(cx,
-    fn parse_char<'a>(input: &'a str) -> Result<&'a str, String> {
+    fn $parse_func<'a>(input: &'a str) -> Result<&'a str, String> {
         if input.len() > 0 {
             let cr = input.char_range_at(0);
             if cr.ch == $c {

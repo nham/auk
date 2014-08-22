@@ -6,11 +6,11 @@ extern crate auk;
 fn main() {
     auk!(
         grammar foo {
-            start = 'd'
+            start = 'z'
         }
     )
 
-    println!("{}", parse_char("dog"));
-    println!("{}", parse_char("cat"));
-    println!("{}", parse_char(""));
+    println!("{}", parse_start("zog"));
+    println!("{}", parse_start("wat"));
+    println!("{}", parse_start(""));
 }
