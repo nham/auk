@@ -6,17 +6,13 @@ extern crate syntax;
 
 use front::parse_grammar;
 use middle::convert;
-pub use peg::PEGGrammar;
-pub use expr::Empty;
 use front::{Terminal};
 
 use rustc::plugin::Registry;
 
-mod expr;
 mod front;
 mod libsyn;
 mod middle;
-mod peg;
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
