@@ -6,7 +6,7 @@ extern crate syntax;
 
 use front::parse_grammar;
 use middle::convert;
-use front::{Terminal};
+use front::{Terminal, TerminalString};
 
 use rustc::plugin::Registry;
 
@@ -41,22 +41,39 @@ fn expand(
           let qi = match *g.rules.find(&g.start).unwrap() {
               Terminal(c) => {
                   quote_item!(cx,
-    fn $parse_func<'a>(input: &'a str) -> Result<&'a str, String> {
-        if input.len() > 0 {
-            let cr = input.char_range_at(0);
-            if cr.ch == $c {
-                Ok(input.slice_from(cr.next))
-            } else {
-                Err(format!("Could not match '{}': (saw '{}' instead)", $c, cr.ch))
-            }
-        } else {
-            Err(format!("Could not match '{}' (end of input)", $c))
-        }
-    }
-                )
-
+                      fn $parse_func<'a>(input: &'a str) -> Result<&'a str, String> {
+                          if input.len() > 0 {
+                              let cr = input.char_range_at(0);
+                              if cr.ch == $c {
+                                  Ok(input.slice_from(cr.next))
+                              } else {
+                                  Err(format!("Could not match '{}': (saw '{}' instead)",
+                                              $c, cr.ch))
+                              }
+                          } else {
+                              Err(format!("Could not match '{}' (end of input)", $c))
+                          }
+                      }
+                  )
               },
-
+              TerminalString(ref s) => {
+                  let sl = s.as_slice();
+                  let n = s.len();
+                  let nbytes = s.as_bytes().len();
+                  quote_item!(cx,
+                      fn $parse_func<'a>(input: &'a str) -> Result<&'a str, String> {
+                          if input.len() >= $n {
+                              if input.starts_with($sl) {
+                                  Ok(input.slice_from($nbytes))
+                              } else {
+                                  Err(format!("Could not match '{}': (saw '{}' instead)", $sl, input))
+                              }
+                          } else {
+                              Err(format!("Could not match '{}' (end of input)", $sl))
+                          }
+                      }
+                  )
+              },
               _ => fail!("Unimplemented"),
           };
 

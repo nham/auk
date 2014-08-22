@@ -51,7 +51,7 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
 fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
     // the second value attached to IDENT is the "is_mod_name" flag
     match parser.token {
-        libsyn::IDENT(ident, false) if "grammar" == libsyn::get_ident(ident).get() => {
+        libsyn::IDENT(ident, false) if "grammar" == ident.as_str() => {
             parser.bump();
             true
         },
@@ -66,7 +66,6 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 }
 
 fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
-    // first we check for a ! or & predicate
     match parser.token {
         libsyn::BINOP(libsyn::AND) => {
             parser.bump();
@@ -79,6 +78,10 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
         libsyn::LIT_CHAR(name) => {
             parser.bump();
             return Terminal( libsyn::get_name(name).get().char_at(0) );
+        },
+        libsyn::LIT_STR(name) => {
+            parser.bump();
+            return TerminalString( libsyn::get_name(name).get().to_string() );
         },
         _ => {
             fail!("Unimplemented");
