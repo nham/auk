@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use libsyn;
 
-enum Expression_<N> {
+pub enum Expression_<N> {
     Empty,
     Terminal(char),
     AnyTerminal, // any terminal
@@ -41,10 +41,11 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
 
     let name = parser.parse_ident();
     parser.expect(&libsyn::LBRACE);
-    parse_rule(parser);
+    let mut v = vec!();
+    v.push( parse_rule(parser) );
     //thing goes here
     parser.expect(&libsyn::RBRACE);
-    Grammar { name: name, rules: vec!() }
+    Grammar { name: name, rules: v }
 }
 
 fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {

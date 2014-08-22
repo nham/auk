@@ -8,6 +8,7 @@ use front::parse_grammar;
 use middle::convert;
 pub use peg::PEGGrammar;
 pub use expr::Empty;
+use front::{Terminal};
 
 use rustc::plugin::Registry;
 
@@ -36,17 +37,28 @@ fn expand(
 
   match convert(grammar) {
       None => fail!("Conversion didn't work."),
-      Some(_) => { // TODO: have to actually generate things
-          let qi = quote_item!(cx,
-                    fn parse_dot<'a>(input: &'a str) -> Result<&'a str, String> {
-                        if input.len() > 0 {
-                            let n = input.char_range_at(0).next;
-                            Ok(input.slice_from(n))
-                        } else {
-                            Err(format!("Could not match '.' (end of input)"))
-                        }
-                    }
-                       );
+      Some(g) => { // TODO: have to actually generate things
+          let qi = match *g.rules.find(&g.start).unwrap() {
+              Terminal(c) => {
+                  quote_item!(cx,
+    fn parse_char<'a>(input: &'a str) -> Result<&'a str, String> {
+        if input.len() > 0 {
+            let cr = input.char_range_at(0);
+            if cr.ch == $c {
+                Ok(input.slice_from(cr.next))
+            } else {
+                Err(format!("Could not match '{}': (saw '{}' instead)", $c, cr.ch))
+            }
+        } else {
+            Err(format!("Could not match '{}' (end of input)", $c))
+        }
+    }
+                )
+
+              },
+
+              _ => fail!("Unimplemented"),
+          };
 
           libsyn::MacItem::new( qi.unwrap() )
       },

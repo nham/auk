@@ -10,7 +10,7 @@ fn main() {
         }
     )
 
-    println!("{}", parse_dot("dog"));
-    println!("{}", parse_dot("cat"));
-    println!("{}", parse_dot(""));
+    println!("{}", parse_char("dog"));
+    println!("{}", parse_char("cat"));
+    println!("{}", parse_char(""));
 }
