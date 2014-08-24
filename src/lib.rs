@@ -38,7 +38,7 @@ fn expand(
             let parse_fn_str = "parse_".to_string() + g.start.as_str();
             let parse_fn_name = libsyn::Ident::new(libsyn::intern(parse_fn_str.as_slice()));
 
-            let parser_code = generate_parser(cx, g.rules.find(&g.start).unwrap(), parse_fn_name);
+            let parser_code = generate_parser(cx, g.rules.find(&g.start).unwrap());
             let qi =
                 quote_item!(cx,
                     fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
@@ -52,8 +52,7 @@ fn expand(
 
 fn generate_parser(
     cx: &mut libsyn::ExtCtxt,
-    expr: &Expression,
-    parse_fn_name: libsyn::Ident
+    expr: &Expression
 ) -> Gc<libsyn::Expr> {
     match *expr {
         Terminal(c) => {
@@ -89,10 +88,22 @@ fn generate_parser(
             )
         },
         PosLookahead(ref e) => {
-            fail!("Unimplemented")
+            let parser = generate_parser(cx, &**e);
+            quote_expr!(cx,
+                match $parser {
+                    Ok(_) => Ok(input),
+                    Err(e) => Err(e),
+                }
+            )
         },
         NegLookahead(ref e) => {
-            fail!("Unimplemented")
+            let parser = generate_parser(cx, &**e);
+            quote_expr!(cx,
+                match $parser {
+                    Ok(_) => Err(format!("Could not match ! expression")),
+                    Err(e) => Ok(input),
+                }
+            )
         },
         _ => fail!("Unimplemented"),
     }
