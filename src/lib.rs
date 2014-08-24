@@ -35,10 +35,16 @@ fn expand(
     match convert(grammar) {
         None => fail!("Conversion didn't work."),
         Some(g) => { // TODO: have to actually generate things
-            let parse_func_str = "parse_".to_string() + g.start.as_str();
-            let parse_func = libsyn::Ident::new(libsyn::intern(parse_func_str.as_slice()));
+            let parse_fn_str = "parse_".to_string() + g.start.as_str();
+            let parse_fn_name = libsyn::Ident::new(libsyn::intern(parse_fn_str.as_slice()));
 
-            let qi = generate_parser(cx, g.rules.find(&g.start).unwrap(), parse_func);
+            let parser_code = generate_parser(cx, g.rules.find(&g.start).unwrap(), parse_fn_name);
+            let qi =
+                quote_item!(cx,
+                    fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
+                        $parser_code
+                    }
+                );
             libsyn::MacItem::new( qi.unwrap() )
         },
     }
@@ -48,22 +54,20 @@ fn generate_parser(
     cx: &mut libsyn::ExtCtxt,
     expr: &Expression,
     parse_fn_name: libsyn::Ident
-) -> Option<Gc<libsyn::Item>> {
+) -> Gc<libsyn::Expr> {
     match *expr {
         Terminal(c) => {
-            quote_item!(cx,
-                fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
-                    if input.len() > 0 {
-                        let cr = input.char_range_at(0);
-                        if cr.ch == $c {
-                            Ok(input.slice_from(cr.next))
-                        } else {
-                            Err(format!("Could not match '{}': (saw '{}' instead)",
-                                        $c, cr.ch))
-                        }
+            quote_expr!(cx,
+                if input.len() > 0 {
+                    let cr = input.char_range_at(0);
+                    if cr.ch == $c {
+                        Ok(input.slice_from(cr.next))
                     } else {
-                        Err(format!("Could not match '{}' (end of input)", $c))
+                        Err(format!("Could not match '{}': (saw '{}' instead)",
+                                    $c, cr.ch))
                     }
+                } else {
+                    Err(format!("Could not match '{}' (end of input)", $c))
                 }
             )
         },
@@ -71,18 +75,16 @@ fn generate_parser(
             let sl = s.as_slice();
             let n = s.len();
             let nbytes = s.as_bytes().len();
-            quote_item!(cx,
-                fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
-                    if input.len() >= $n {
-                        if input.starts_with($sl) {
-                            Ok(input.slice_from($nbytes))
-                        } else {
-                            Err(format!("Could not match '{}': (saw '{}' instead)",
-                                        $sl, input))
-                        }
+            quote_expr!(cx,
+                if input.len() >= $n {
+                    if input.starts_with($sl) {
+                        Ok(input.slice_from($nbytes))
                     } else {
-                        Err(format!("Could not match '{}' (end of input)", $sl))
+                        Err(format!("Could not match '{}': (saw '{}' instead)",
+                                    $sl, input))
                     }
+                } else {
+                    Err(format!("Could not match '{}' (end of input)", $sl))
                 }
             )
         },
