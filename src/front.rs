@@ -63,7 +63,38 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
     Rule { name: name, expr: box parse_rule_expr(parser) }
 }
 
+// This is how we do it
+//
+// Expression = Sequence (SP '/' SP Sequence)*
+// Sequence   = Chunk*
+// Chunk      = PRED? SP Primary SP AMOUNT?
+// Primary    = Identifier !(SP '=')
+//             / '(' SP Expression SP ')'
+//             / Literal
+//             / Class
+//             / '.'
+//
+// Currently we do not parse choices, just a sequence of chunks
+// TODO: implement choice parsing, also need to amend this to support
+// parsing of multiple rules
 fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
+    let mut v = vec!();
+    loop {
+        match parser.token {
+            libsyn::RBRACE => break,
+            libsyn::EOF => break,
+            _ => v.push(parse_rule_chunk(parser)),
+        }
+    }
+
+    if v.len() == 1 {
+        v.move_iter().next().unwrap()
+    } else {
+        Seq(v)
+    }
+}
+
+fn parse_rule_chunk(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::BINOP(libsyn::AND) => {
             parser.bump();
@@ -74,7 +105,7 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
             return NegLookahead(box parse_rule_expr(parser));
         },
         _ => {
-            let expr = parse_non_prefix(parser);
+            let expr = parse_primary(parser);
             match parser.token {
                 libsyn::BINOP(libsyn::STAR) => {
                     parser.bump();
@@ -95,8 +126,9 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
     }
 }
 
-// parse something that could be modified by one of the suffixes: ?, +, *
-fn parse_non_prefix(parser: &mut libsyn::Parser) -> Expression {
+// A 'primary' is a char, a string, a dot, a character class, or a non-terminal
+// TODO: implement non-terminal
+fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::LIT_CHAR(name) => {
             parser.bump();
