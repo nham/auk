@@ -6,7 +6,7 @@ extern crate syntax;
 
 use front::{Expression, parse_grammar};
 use middle::convert;
-use front::{Terminal, TerminalString, PosLookahead, NegLookahead};
+use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -67,6 +67,16 @@ fn generate_parser(
                     }
                 } else {
                     Err(format!("Could not match '{}' (end of input)", $c))
+                }
+            )
+        },
+        AnyTerminal => {
+            quote_expr!(cx,
+                if input.len() > 0 {
+                    let cr = input.char_range_at(0);
+                    Ok(input.slice_from(cr.next))
+                } else {
+                    Err(format!("Could not match '.' (end of input)"))
                 }
             )
         },

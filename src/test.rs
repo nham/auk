@@ -28,6 +28,36 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            quux2 = &"abc"
+        }
+    )
+
+    auk!(
+        grammar bar {
+            quux3 = !"abc"
+        }
+    )
+
+    auk!(
+        grammar bar {
+            dot = .
+        }
+    )
+
+    auk!(
+        grammar bar {
+            posdot = &.
+        }
+    )
+
+    auk!(
+        grammar bar {
+            negdot = !.
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -46,4 +76,26 @@ fn main() {
     println!("{}", parse_quux("abcde"));
     println!("{}", parse_quux("abde"));
     println!("{}", parse_quux(""));
+    println!("-----------");
+
+    println!("{}", parse_quux2("abcde"));
+    println!("{}", parse_quux2("abde"));
+    println!("{}", parse_quux2(""));
+    println!("-----------");
+
+    println!("{}", parse_quux3("abcde"));
+    println!("{}", parse_quux3("abde"));
+    println!("{}", parse_quux3(""));
+    println!("-----------");
+
+    println!("{}", parse_dot("abcde"));
+    println!("{}", parse_dot(""));
+    println!("-----------");
+
+    println!("{}", parse_posdot("abcde"));
+    println!("{}", parse_posdot(""));
+    println!("-----------");
+
+    println!("{}", parse_negdot("abcde"));
+    println!("{}", parse_negdot(""));
 }

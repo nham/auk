@@ -83,6 +83,10 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
             parser.bump();
             return TerminalString( libsyn::get_name(name).get().to_string() );
         },
+        libsyn::DOT => {
+            parser.bump();
+            return AnyTerminal;
+        },
         _ => {
             fail!("Unimplemented");
         },
