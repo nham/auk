@@ -7,7 +7,7 @@ extern crate syntax;
 use front::{Expression, parse_grammar};
 use middle::convert;
 use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead,
-            Class, ZeroOrMore, OneOrMore, Optional};
+            Class, ZeroOrMore, OneOrMore, Optional, Seq};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -39,9 +39,12 @@ fn expand(
             let parse_fn_str = "parse_".to_string() + g.start.as_str();
             let parse_fn_name = libsyn::Ident::new(libsyn::intern(parse_fn_str.as_slice()));
 
+            let input = libsyn::Ident::new(libsyn::intern("input"));
+
             let parser_code = generate_parser(cx,
                                               g.rules.find(&g.start).unwrap(),
-                                              parse_fn_name);
+                                              parse_fn_name,
+                                              input);
             let qi =
                 quote_item!(cx,
                     fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
@@ -57,14 +60,15 @@ fn generate_parser(
     cx: &mut libsyn::ExtCtxt,
     expr: &Expression,
     fn_name: libsyn::Ident,
+    input_ident: libsyn::Ident,
 ) -> Gc<libsyn::Expr> {
     match *expr {
         Terminal(c) => {
             quote_expr!(cx,
-                if input.len() > 0 {
-                    let cr = input.char_range_at(0);
+                if $input_ident.len() > 0 {
+                    let cr = $input_ident.char_range_at(0);
                     if cr.ch == $c {
-                        Ok(input.slice_from(cr.next))
+                        Ok($input_ident.slice_from(cr.next))
                     } else {
                         Err(format!("Could not match '{}': (saw '{}' instead)",
                                     $c, cr.ch))
@@ -76,9 +80,9 @@ fn generate_parser(
         },
         AnyTerminal => {
             quote_expr!(cx,
-                if input.len() > 0 {
-                    let cr = input.char_range_at(0);
-                    Ok(input.slice_from(cr.next))
+                if $input_ident.len() > 0 {
+                    let cr = $input_ident.char_range_at(0);
+                    Ok($input_ident.slice_from(cr.next))
                 } else {
                     Err(format!("Could not match '.' (end of input)"))
                 }
@@ -89,12 +93,12 @@ fn generate_parser(
             let n = s.len();
             let nbytes = s.as_bytes().len();
             quote_expr!(cx,
-                if input.len() >= $n {
-                    if input.starts_with($sl) {
-                        Ok(input.slice_from($nbytes))
+                if $input_ident.len() >= $n {
+                    if $input_ident.starts_with($sl) {
+                        Ok($input_ident.slice_from($nbytes))
                     } else {
                         Err(format!("Could not match '{}': (saw '{}' instead)",
-                                    $sl, input))
+                                    $sl, $input_ident))
                     }
                 } else {
                     Err(format!("Could not match '{}' (end of input)", $sl))
@@ -102,30 +106,30 @@ fn generate_parser(
             )
         },
         PosLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e, fn_name);
+            let parser = generate_parser(cx, &**e, fn_name, input_ident);
             quote_expr!(cx,
                 match $parser {
-                    Ok(_) => Ok(input),
+                    Ok(_) => Ok($input_ident),
                     Err(e) => Err(e),
                 }
             )
         },
         NegLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e, fn_name);
+            let parser = generate_parser(cx, &**e, fn_name, input_ident);
             quote_expr!(cx,
                 match $parser {
                     Ok(_) => Err(format!("Could not match ! expression")),
-                    Err(e) => Ok(input),
+                    Err(e) => Ok($input_ident),
                 }
             )
         },
         Class(ref s) => {
             let sl = s.as_slice();
             quote_expr!(cx,
-                if input.len() > 0 {
-                    let cr = input.char_range_at(0);
+                if $input_ident.len() > 0 {
+                    let cr = $input_ident.char_range_at(0);
                     if $sl.find(cr.ch).is_some() {
-                        Ok(input.slice_from(cr.next))
+                        Ok($input_ident.slice_from(cr.next))
                     } else {
                         Err(format!("Could not match '[{}]': (saw '{}' instead)",
                                     $sl, cr.ch))
@@ -136,16 +140,16 @@ fn generate_parser(
             )
         },
         ZeroOrMore(ref e) => {
-            let parser = generate_parser(cx, &**e, fn_name);
+            let parser = generate_parser(cx, &**e, fn_name, input_ident);
             quote_expr!(cx,
                 match $parser {
                     Ok(rem) => $fn_name(rem),
-                    Err(e) => Ok(input),
+                    Err(e) => Ok($input_ident),
                 }
             )
         },
         OneOrMore(ref e) => {
-            let parser = generate_parser(cx, &**e, fn_name);
+            let parser = generate_parser(cx, &**e, fn_name, input_ident);
             quote_expr!(cx,
                 match $parser {
                     Ok(rem) => {
@@ -159,14 +163,46 @@ fn generate_parser(
             )
         },
         Optional(ref e) => {
-            let parser = generate_parser(cx, &**e, fn_name);
+            let parser = generate_parser(cx, &**e, fn_name, input_ident);
             quote_expr!(cx,
                 match $parser {
                     Ok(rem) => Ok(rem),
-                    Err(e) => Ok(input),
+                    Err(e) => Ok($input_ident),
                 }
             )
         },
+        Seq(ref v) => {
+            if v.len() == 0 { // basically like the empty expression
+                quote_expr!(cx, Ok($input_ident))
+            } else {
+                generate_seq_parser(cx, v.as_slice(), fn_name, input_ident)
+            }
+        },
         _ => fail!("Unimplemented"),
+    }
+}
+
+fn generate_seq_parser(
+    cx: &mut libsyn::ExtCtxt,
+    exprs: &[Expression],
+    fn_name: libsyn::Ident,
+    input_ident: libsyn::Ident,
+) -> Gc<libsyn::Expr> {
+    if exprs.len() == 0 {
+        fail!("Don't call generate_seq_parser with a slice of length 0")
+    } else if exprs.len() == 1 {
+        let parser = generate_parser(cx, &exprs[0], fn_name, input_ident);
+        quote_expr!(cx, $parser)
+    } else {
+        let parser = generate_parser(cx, &exprs[0], fn_name, input_ident);
+        let rem = libsyn::Ident::new(libsyn::intern("rem"));
+        let parser2 = generate_seq_parser(cx, exprs.slice_from(1), fn_name, rem);
+        quote_expr!(cx,
+            match $parser {
+                Err(e) => Err(e),
+                Ok(rem) => $parser2,
+            }
+        )
+
     }
 }

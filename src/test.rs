@@ -94,6 +94,18 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            cat1 = "abc" "def"
+        }
+    )
+
+    auk!(
+        grammar bar {
+            cat2 = "bbc" ["aeiou"]? 'z'
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -169,4 +181,22 @@ fn main() {
     println!("{}", parse_optional2("cat"));
     println!("{}", parse_optional2("adog"));
     println!("{}", parse_optional2(""));
+    println!("-----------");
+
+    println!("{}", parse_cat1("abc"));
+    println!("{}", parse_cat1("bbc"));
+    println!("{}", parse_cat1("def"));
+    println!("{}", parse_cat1("abcdefgh"));
+    println!("{}", parse_cat1(""));
+    println!("-----------");
+
+    println!("{}", parse_cat2("abc"));
+    println!("{}", parse_cat2("bbc"));
+    println!("{}", parse_cat2("bbczbbc"));
+    println!("{}", parse_cat2("bbcazbbc"));
+    println!("{}", parse_cat2("bbcezbbc"));
+    println!("{}", parse_cat2("bbcizbbc"));
+    println!("{}", parse_cat2("bbcozbbc"));
+    println!("{}", parse_cat2("bbcuzbbc"));
+    println!("{}", parse_cat2(""));
 }
