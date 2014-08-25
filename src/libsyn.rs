@@ -4,5 +4,6 @@ pub use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, MacItem};
 pub use syntax::parse::new_parser_from_tts;
 pub use syntax::parse::parser::Parser;
 pub use syntax::parse::token::{IDENT, LBRACE, RBRACE, EQ, NOT, BINOP, AND, LIT_CHAR,
-                               LIT_STR, DOT, LBRACKET, RBRACKET, get_name, intern};
+                               LIT_STR, DOT, LBRACKET, RBRACKET, STAR, PLUS,
+                               get_name, intern};
 pub use syntax::ast::ExprBlock;

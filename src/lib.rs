@@ -7,7 +7,7 @@ extern crate syntax;
 use front::{Expression, parse_grammar};
 use middle::convert;
 use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead,
-            Class};
+            Class, ZeroOrMore, OneOrMore};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -39,7 +39,9 @@ fn expand(
             let parse_fn_str = "parse_".to_string() + g.start.as_str();
             let parse_fn_name = libsyn::Ident::new(libsyn::intern(parse_fn_str.as_slice()));
 
-            let parser_code = generate_parser(cx, g.rules.find(&g.start).unwrap());
+            let parser_code = generate_parser(cx,
+                                              g.rules.find(&g.start).unwrap(),
+                                              parse_fn_name);
             let qi =
                 quote_item!(cx,
                     fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
@@ -53,7 +55,8 @@ fn expand(
 
 fn generate_parser(
     cx: &mut libsyn::ExtCtxt,
-    expr: &Expression
+    expr: &Expression,
+    fn_name: libsyn::Ident,
 ) -> Gc<libsyn::Expr> {
     match *expr {
         Terminal(c) => {
@@ -99,7 +102,7 @@ fn generate_parser(
             )
         },
         PosLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e);
+            let parser = generate_parser(cx, &**e, fn_name);
             quote_expr!(cx,
                 match $parser {
                     Ok(_) => Ok(input),
@@ -108,7 +111,7 @@ fn generate_parser(
             )
         },
         NegLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e);
+            let parser = generate_parser(cx, &**e, fn_name);
             quote_expr!(cx,
                 match $parser {
                     Ok(_) => Err(format!("Could not match ! expression")),
@@ -129,6 +132,29 @@ fn generate_parser(
                     }
                 } else {
                     Err(format!("Could not match '[{}]' (end of input)", $sl))
+                }
+            )
+        },
+        ZeroOrMore(ref e) => {
+            let parser = generate_parser(cx, &**e, fn_name);
+            quote_expr!(cx,
+                match $parser {
+                    Ok(rem) => $fn_name(rem),
+                    Err(e) => Ok(input),
+                }
+            )
+        },
+        OneOrMore(ref e) => {
+            let parser = generate_parser(cx, &**e, fn_name);
+            quote_expr!(cx,
+                match $parser {
+                    Ok(rem) => {
+                        match $fn_name(rem) {
+                            Ok(r) => Ok(r),
+                            Err(_) => Ok(rem),
+                        }
+                    },
+                    Err(e) => Err(e),
                 }
             )
         },

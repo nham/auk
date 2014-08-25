@@ -64,6 +64,24 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            star1 = "abc"*
+        }
+    )
+
+    auk!(
+        grammar bar {
+            star2 = ["aeiou"]*
+        }
+    )
+
+    auk!(
+        grammar bar {
+            plus1 = "abc"+
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -104,8 +122,27 @@ fn main() {
 
     println!("{}", parse_negdot("abcde"));
     println!("{}", parse_negdot(""));
+    println!("-----------");
 
     println!("{}", parse_vowels("abc"));
     println!("{}", parse_vowels("bbc"));
     println!("{}", parse_vowels(""));
+    println!("-----------");
+
+    println!("{}", parse_star1("abc"));
+    println!("{}", parse_star1("bbc"));
+    println!("{}", parse_star1("abcabcabcde"));
+    println!("{}", parse_star1(""));
+    println!("-----------");
+
+    println!("{}", parse_plus1("abc"));
+    println!("{}", parse_plus1("bbc"));
+    println!("{}", parse_plus1("abcabcabcde"));
+    println!("{}", parse_plus1(""));
+    println!("-----------");
+
+    println!("{}", parse_star2("aaaoooitieooouuuu"));
+    println!("{}", parse_star2("cat"));
+    println!("{}", parse_star2("adog"));
+    println!("{}", parse_star2(""));
 }

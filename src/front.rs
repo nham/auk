@@ -73,6 +73,27 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
             parser.bump();
             return NegLookahead(box parse_rule_expr(parser));
         },
+        _ => {
+            let expr = parse_non_prefix(parser);
+            match parser.token {
+                libsyn::BINOP(libsyn::STAR) => {
+                    parser.bump();
+                    return ZeroOrMore(box expr);
+                },
+                libsyn::BINOP(libsyn::PLUS) => {
+                    parser.bump();
+                    return OneOrMore(box expr);
+                },
+                _ => return expr, // this is probably not right. need to check
+                                  // if its the next rule or whatever
+            }
+        },
+    }
+}
+
+// parse something that could be modified by one of the suffixes: ?, +, *
+fn parse_non_prefix(parser: &mut libsyn::Parser) -> Expression {
+    match parser.token {
         libsyn::LIT_CHAR(name) => {
             parser.bump();
             return Terminal( libsyn::get_name(name).get().char_at(0) );
@@ -105,7 +126,7 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
 
         }
         _ => {
-            fail!("Unimplemented");
+            fail!("Couldn't find any non-prefix to parse");
         },
     }
 }
