@@ -82,6 +82,18 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            optional1 = "abc"?
+        }
+    )
+
+    auk!(
+        grammar bar {
+            optional2 = ["aeiou"]?
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -145,4 +157,16 @@ fn main() {
     println!("{}", parse_star2("cat"));
     println!("{}", parse_star2("adog"));
     println!("{}", parse_star2(""));
+    println!("-----------");
+
+    println!("{}", parse_optional1("abc"));
+    println!("{}", parse_optional1("bbc"));
+    println!("{}", parse_optional1("abcabcabcde"));
+    println!("{}", parse_optional1(""));
+    println!("-----------");
+
+    println!("{}", parse_optional2("aaaoooitieooouuuu"));
+    println!("{}", parse_optional2("cat"));
+    println!("{}", parse_optional2("adog"));
+    println!("{}", parse_optional2(""));
 }

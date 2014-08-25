@@ -84,6 +84,10 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
                     parser.bump();
                     return OneOrMore(box expr);
                 },
+                libsyn::QUESTION => {
+                    parser.bump();
+                    return Optional(box expr);
+                },
                 _ => return expr, // this is probably not right. need to check
                                   // if its the next rule or whatever
             }

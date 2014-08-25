@@ -7,7 +7,7 @@ extern crate syntax;
 use front::{Expression, parse_grammar};
 use middle::convert;
 use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead,
-            Class, ZeroOrMore, OneOrMore};
+            Class, ZeroOrMore, OneOrMore, Optional};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -155,6 +155,15 @@ fn generate_parser(
                         }
                     },
                     Err(e) => Err(e),
+                }
+            )
+        },
+        Optional(ref e) => {
+            let parser = generate_parser(cx, &**e, fn_name);
+            quote_expr!(cx,
+                match $parser {
+                    Ok(rem) => Ok(rem),
+                    Err(e) => Ok(input),
                 }
             )
         },
