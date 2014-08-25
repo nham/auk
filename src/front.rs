@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use libsyn;
 
 pub enum Expression_<N> {
@@ -15,7 +13,7 @@ pub enum Expression_<N> {
     OneOrMore(Box<Expression_<N>>), // +
     PosLookahead(Box<Expression_<N>>), // & predicate in Ford's paper
     NegLookahead(Box<Expression_<N>>), // ! predicate in Ford's paper
-    Class(HashSet<char>),
+    Class(String),
 }
 
 pub type Expression = Expression_<libsyn::Ident>;
@@ -87,6 +85,25 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
             parser.bump();
             return AnyTerminal;
         },
+        libsyn::LBRACKET => {
+            parser.bump();
+            match parser.token {
+                libsyn::LIT_STR(name) => {
+                    parser.bump();
+                    let s = libsyn::get_name(name).get().to_string();
+
+                    match parser.token {
+                        libsyn::RBRACKET => {
+                            parser.bump();
+                            return Class(s);
+                        },
+                        _ => fail!("Character class must end with ']'"),
+                    }
+                },
+                _ => fail!("Character class has the form '[\"<chars>\"]'"),
+            }
+
+        }
         _ => {
             fail!("Unimplemented");
         },

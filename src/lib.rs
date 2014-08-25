@@ -6,7 +6,8 @@ extern crate syntax;
 
 use front::{Expression, parse_grammar};
 use middle::convert;
-use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead};
+use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead,
+            Class};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -112,6 +113,22 @@ fn generate_parser(
                 match $parser {
                     Ok(_) => Err(format!("Could not match ! expression")),
                     Err(e) => Ok(input),
+                }
+            )
+        },
+        Class(ref s) => {
+            let sl = s.as_slice();
+            quote_expr!(cx,
+                if input.len() > 0 {
+                    let cr = input.char_range_at(0);
+                    if $sl.find(cr.ch).is_some() {
+                        Ok(input.slice_from(cr.next))
+                    } else {
+                        Err(format!("Could not match '[{}]': (saw '{}' instead)",
+                                    $sl, cr.ch))
+                    }
+                } else {
+                    Err(format!("Could not match '[{}]' (end of input)", $sl))
                 }
             )
         },

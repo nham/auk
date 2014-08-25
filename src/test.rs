@@ -58,6 +58,12 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            vowels = ["aeiou"]
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -98,4 +104,8 @@ fn main() {
 
     println!("{}", parse_negdot("abcde"));
     println!("{}", parse_negdot(""));
+
+    println!("{}", parse_vowels("abc"));
+    println!("{}", parse_vowels("bbc"));
+    println!("{}", parse_vowels(""));
 }
