@@ -119,36 +119,41 @@ fn parse_rule_chunk(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::BINOP(libsyn::AND) => {
             parser.bump();
-            return PosLookahead(box parse_rule_expr(parser));
+            return PosLookahead(box parse_rule_chunk(parser));
         },
         libsyn::NOT => {
             parser.bump();
-            return NegLookahead(box parse_rule_expr(parser));
+            return NegLookahead(box parse_rule_chunk(parser));
         },
-        _ => {
-            let expr = parse_primary(parser);
-            match parser.token {
-                libsyn::BINOP(libsyn::STAR) => {
-                    parser.bump();
-                    return ZeroOrMore(box expr);
-                },
-                libsyn::BINOP(libsyn::PLUS) => {
-                    parser.bump();
-                    return OneOrMore(box expr);
-                },
-                libsyn::QUESTION => {
-                    parser.bump();
-                    return Optional(box expr);
-                },
-                _ => return expr, // this is probably not right. need to check
-                                  // if its the next rule or whatever
-            }
-        },
+        _ => parse_rule_chunk_no_prefix(parser),
     }
 }
 
-// A 'primary' is a char, a string, a dot, a character class, or a non-terminal
-// TODO: implement non-terminal
+
+fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser) -> Expression {
+    let expr = parse_primary(parser);
+    match parser.token {
+        libsyn::BINOP(libsyn::STAR) => {
+            parser.bump();
+            return ZeroOrMore(box expr);
+        },
+        libsyn::BINOP(libsyn::PLUS) => {
+            parser.bump();
+            return OneOrMore(box expr);
+        },
+        libsyn::QUESTION => {
+            parser.bump();
+            return Optional(box expr);
+        },
+        _ => return expr, // this is probably not right. need to check
+                          // if its the next rule or whatever
+    }
+}
+
+
+// A 'primary' is a char, a string, a dot, a character class, a parenthesized
+// expression or a non-terminal
+// TODO: implement non-terminals, parens
 fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::LIT_CHAR(name) => {
@@ -188,6 +193,7 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
     }
 }
 
+#[cfg(test)]
 mod test {
     use syntax::parse::{ParseSess, new_parser_from_source_str, new_parse_sess};
     use syntax::parse::parser::Parser;
@@ -271,5 +277,19 @@ mod test {
         let sess = new_parse_sess();
         let mut p = new_parser("![\"abc\"]+", &sess);
         assert!( is_variant1!(parse_rule_expr(&mut p), NegLookahead) );
+    }
+
+    #[test]
+    fn test_parse_seq() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("![\"abc\"]+ &.", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), Seq) );
+    }
+
+    #[test]
+    fn test_parse_alt() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("![\"abc\"]+ / 'e'*", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), Alt) );
     }
 }
