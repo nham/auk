@@ -65,6 +65,7 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 
 // This is how we do it
 //
+// Definition = Identifier SP '=' SP Expression
 // Expression = Sequence (SP '/' SP Sequence)*
 // Sequence   = Chunk*
 // Chunk      = PRED? SP Primary SP AMOUNT?
@@ -75,8 +76,7 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 //             / '.'
 //
 // Currently we do not parse choices, just a sequence of chunks
-// TODO: implement choice parsing, also need to amend this to support
-// parsing of multiple rules
+// TODO: need to amend this to support parsing of multiple rules
 fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
     let mut choices = vec!();
     loop {
