@@ -32,13 +32,11 @@ fn expand(
                                                  Vec::from_slice(tts));
 
     let grammar = parse_grammar(&mut parser);
+    let parse_fn_name = grammar.name;
 
     match convert(grammar) {
         None => fail!("Conversion didn't work."),
-        Some(g) => { // TODO: have to actually generate things
-            let parse_fn_str = "parse_".to_string() + g.start.as_str();
-            let parse_fn_name = libsyn::Ident::new(libsyn::intern(parse_fn_str.as_slice()));
-
+        Some(g) => {
             let input = libsyn::Ident::new(libsyn::intern("input"));
 
             let parser_code = generate_parser(cx,

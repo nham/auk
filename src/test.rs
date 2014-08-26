@@ -5,216 +5,217 @@ extern crate auk;
 
 fn main() {
     auk!(
-        grammar foo {
+        grammar achar {
             start = 'z'
         }
     )
 
     auk!(
-        grammar foo {
-            zuh = !'z'
+        grammar charneg {
+            start = !'z'
         }
     )
 
     auk!(
-        grammar foo {
-            buh = &'z'
+        grammar charpos {
+            start = &'z'
         }
     )
 
     auk!(
-        grammar bar {
-            quux = "abc"
+        grammar astr {
+            start = "abc"
         }
     )
 
     auk!(
-        grammar bar {
-            quux2 = &"abc"
+        grammar strpos {
+            start = &"abc"
         }
     )
 
     auk!(
-        grammar bar {
-            quux3 = !"abc"
+        grammar strneg {
+            start = !"abc"
         }
     )
 
     auk!(
-        grammar bar {
-            dot = .
+        grammar dot {
+            start = .
         }
     )
 
     auk!(
-        grammar bar {
-            posdot = &.
+        grammar dotpos {
+            start = &.
         }
     )
 
     auk!(
-        grammar bar {
-            negdot = !.
+        grammar dotneg {
+            start = !.
         }
     )
 
     auk!(
-        grammar bar {
-            vowels = ["aeiou"]
+        grammar vowels {
+            start = ["aeiou"]
         }
     )
 
     auk!(
-        grammar bar {
-            star1 = "abc"*
+        grammar abcstar {
+            start = "abc"*
         }
     )
 
     auk!(
-        grammar bar {
-            star2 = ["aeiou"]*
+        grammar vowelstar {
+            start = ["aeiou"]*
         }
     )
 
     auk!(
-        grammar bar {
-            plus1 = "abc"+
+        grammar abcplus {
+            start = "abc"+
         }
     )
 
     auk!(
-        grammar bar {
-            optional1 = "abc"?
+        grammar abcq {
+            start = "abc"?
         }
     )
 
     auk!(
-        grammar bar {
-            optional2 = ["aeiou"]?
+        grammar vowelq {
+            start = ["aeiou"]?
         }
     )
 
     auk!(
-        grammar bar {
-            cat1 = "abc" "def"
+        grammar abc_cat_def {
+            start = "abc" "def"
         }
     )
 
     auk!(
-        grammar bar {
-            cat2 = "bbc" ["aeiou"]? 'z'
+        grammar bigcat {
+            start = "bbc" ["aeiou"]? 'z'
         }
     )
 
     auk!(
-        grammar bar {
-            alt1 = "bbc" / ["aeiou"] / 'z'
+        grammar bigalt {
+            start = "bbc" / ["aeiou"] / 'z'
         }
     )
 
-    println!("{}", parse_start("zog"));
-    println!("{}", parse_start("wat"));
-    println!("{}", parse_start(""));
+    println!("{}", achar("zog"));
+    println!("{}", achar("wat"));
+    println!("{}", achar(""));
     println!("-----------");
 
-    println!("{}", parse_zuh("zog"));
-    println!("{}", parse_zuh("wat"));
-    println!("{}", parse_zuh(""));
+    println!("{}", charneg("zog"));
+    println!("{}", charneg("wat"));
+    println!("{}", charneg(""));
     println!("-----------");
 
-    println!("{}", parse_buh("zog"));
-    println!("{}", parse_buh("wat"));
-    println!("{}", parse_buh(""));
+    println!("{}", charpos("zog"));
+    println!("{}", charpos("wat"));
+    println!("{}", charpos(""));
     println!("-----------");
 
-    println!("{}", parse_quux("abcde"));
-    println!("{}", parse_quux("abde"));
-    println!("{}", parse_quux(""));
+    println!("{}", astr("abcde"));
+    println!("{}", astr("abde"));
+    println!("{}", astr(""));
     println!("-----------");
 
-    println!("{}", parse_quux2("abcde"));
-    println!("{}", parse_quux2("abde"));
-    println!("{}", parse_quux2(""));
+    println!("{}", strpos("abcde"));
+    println!("{}", strpos("abde"));
+    println!("{}", strpos(""));
     println!("-----------");
 
-    println!("{}", parse_quux3("abcde"));
-    println!("{}", parse_quux3("abde"));
-    println!("{}", parse_quux3(""));
+    println!("{}", strneg("abcde"));
+    println!("{}", strneg("abde"));
+    println!("{}", strneg(""));
     println!("-----------");
 
-    println!("{}", parse_dot("abcde"));
-    println!("{}", parse_dot(""));
+    println!("{}", dot("abcde"));
+    println!("{}", dot(""));
     println!("-----------");
 
-    println!("{}", parse_posdot("abcde"));
-    println!("{}", parse_posdot(""));
+    println!("{}", dotpos("abcde"));
+    println!("{}", dotpos(""));
     println!("-----------");
 
-    println!("{}", parse_negdot("abcde"));
-    println!("{}", parse_negdot(""));
+    println!("{}", dotneg("abcde"));
+    println!("{}", dotneg(""));
     println!("-----------");
 
-    println!("{}", parse_vowels("abc"));
-    println!("{}", parse_vowels("bbc"));
-    println!("{}", parse_vowels(""));
+    println!("{}", vowels("abc"));
+    println!("{}", vowels("bbc"));
+    println!("{}", vowels(""));
     println!("-----------");
 
-    println!("{}", parse_star1("abc"));
-    println!("{}", parse_star1("bbc"));
-    println!("{}", parse_star1("abcabcabcde"));
-    println!("{}", parse_star1(""));
+    println!("{}", abcstar("abc"));
+    println!("{}", abcstar("bbc"));
+    println!("{}", abcstar("abcabcabcde"));
+    println!("{}", abcstar(""));
     println!("-----------");
 
-    println!("{}", parse_plus1("abc"));
-    println!("{}", parse_plus1("bbc"));
-    println!("{}", parse_plus1("abcabcabcde"));
-    println!("{}", parse_plus1(""));
+    println!("{}", vowelstar("aaaoooitieooouuuu"));
+    println!("{}", vowelstar("cat"));
+    println!("{}", vowelstar("adog"));
+    println!("{}", vowelstar(""));
     println!("-----------");
 
-    println!("{}", parse_star2("aaaoooitieooouuuu"));
-    println!("{}", parse_star2("cat"));
-    println!("{}", parse_star2("adog"));
-    println!("{}", parse_star2(""));
+    println!("{}", abcplus("abc"));
+    println!("{}", abcplus("bbc"));
+    println!("{}", abcplus("abcabcabcde"));
+    println!("{}", abcplus(""));
     println!("-----------");
 
-    println!("{}", parse_optional1("abc"));
-    println!("{}", parse_optional1("bbc"));
-    println!("{}", parse_optional1("abcabcabcde"));
-    println!("{}", parse_optional1(""));
+
+    println!("{}", abcq("abc"));
+    println!("{}", abcq("bbc"));
+    println!("{}", abcq("abcabcabcde"));
+    println!("{}", abcq(""));
     println!("-----------");
 
-    println!("{}", parse_optional2("aaaoooitieooouuuu"));
-    println!("{}", parse_optional2("cat"));
-    println!("{}", parse_optional2("adog"));
-    println!("{}", parse_optional2(""));
+    println!("{}", vowelq("aaaoooitieooouuuu"));
+    println!("{}", vowelq("cat"));
+    println!("{}", vowelq("adog"));
+    println!("{}", vowelq(""));
     println!("-----------");
 
-    println!("{}", parse_cat1("abc"));
-    println!("{}", parse_cat1("bbc"));
-    println!("{}", parse_cat1("def"));
-    println!("{}", parse_cat1("abcdefgh"));
-    println!("{}", parse_cat1(""));
+    println!("{}", abc_cat_def("abc"));
+    println!("{}", abc_cat_def("bbc"));
+    println!("{}", abc_cat_def("def"));
+    println!("{}", abc_cat_def("abcdefgh"));
+    println!("{}", abc_cat_def(""));
     println!("-----------");
 
-    println!("{}", parse_cat2("abc"));
-    println!("{}", parse_cat2("bbc"));
-    println!("{}", parse_cat2("bbczbbc"));
-    println!("{}", parse_cat2("bbcazbbc"));
-    println!("{}", parse_cat2("bbcezbbc"));
-    println!("{}", parse_cat2("bbcizbbc"));
-    println!("{}", parse_cat2("bbcozbbc"));
-    println!("{}", parse_cat2("bbcuzbbc"));
-    println!("{}", parse_cat2(""));
+    println!("{}", bigcat("abc"));
+    println!("{}", bigcat("bbc"));
+    println!("{}", bigcat("bbczbbc"));
+    println!("{}", bigcat("bbcazbbc"));
+    println!("{}", bigcat("bbcezbbc"));
+    println!("{}", bigcat("bbcizbbc"));
+    println!("{}", bigcat("bbcozbbc"));
+    println!("{}", bigcat("bbcuzbbc"));
+    println!("{}", bigcat(""));
     println!("-----------");
 
-    println!("{}", parse_alt1("abc"));
-    println!("{}", parse_alt1("bbc"));
-    println!("{}", parse_alt1("bbczbbc"));
-    println!("{}", parse_alt1("azbbc"));
-    println!("{}", parse_alt1("ezbbc"));
-    println!("{}", parse_alt1("izbbc"));
-    println!("{}", parse_alt1("ozbbc"));
-    println!("{}", parse_alt1("uzbbc"));
-    println!("{}", parse_alt1("ze cat"));
-    println!("{}", parse_alt1(""));
+    println!("{}", bigalt("abc"));
+    println!("{}", bigalt("bbc"));
+    println!("{}", bigalt("bbczbbc"));
+    println!("{}", bigalt("azbbc"));
+    println!("{}", bigalt("ezbbc"));
+    println!("{}", bigalt("izbbc"));
+    println!("{}", bigalt("ozbbc"));
+    println!("{}", bigalt("uzbbc"));
+    println!("{}", bigalt("ze cat"));
+    println!("{}", bigalt(""));
 }
