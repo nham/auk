@@ -226,6 +226,12 @@ mod test {
             }
         )
 
+        auk!(
+            grammar eeeneg {
+                start = !'e'*
+            }
+        )
+
         assert!(zneg("zog").is_err());
         assert_eq!(zneg("wat"), Ok("wat"));
         assert_eq!(zneg(""), Ok(""));
@@ -240,6 +246,11 @@ mod test {
         assert!(vowelsneg("oof").is_err());
         assert_eq!(vowelsneg("baby"), Ok("baby"));
         assert_eq!(vowelsneg(""), Ok(""));
+
+        assert!(eeeneg("ehello").is_err());
+        assert!(eeeneg("eeeehello").is_err());
+        assert_eq!(eeeneg("hello"), Ok("hello"));
+        assert_eq!(eeeneg(""), Ok(""));
     }
 
     #[test]
@@ -268,6 +279,12 @@ mod test {
             }
         )
 
+        auk!(
+            grammar eeepos {
+                start = &'e'+
+            }
+        )
+
         assert_eq!(zpos("zog"), Ok("zog"));
         assert!(zpos("wat").is_err());
         assert!(zpos("").is_err());
@@ -282,6 +299,11 @@ mod test {
         assert_eq!(vowelspos("oof"), Ok("oof"));
         assert!(vowelspos("baby").is_err());
         assert!(vowelspos("").is_err());
+
+        assert_eq!(eeepos("ehello"), Ok("ehello"));
+        assert_eq!(eeepos("eeehello"), Ok("eeehello"));
+        assert!(eeepos("hello").is_err());
+        assert!(eeepos("").is_err());
     }
 
     #[test]
