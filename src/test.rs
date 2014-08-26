@@ -106,6 +106,12 @@ fn main() {
         }
     )
 
+    auk!(
+        grammar bar {
+            alt1 = "bbc" / ["aeiou"] / 'z'
+        }
+    )
+
     println!("{}", parse_start("zog"));
     println!("{}", parse_start("wat"));
     println!("{}", parse_start(""));
@@ -199,4 +205,16 @@ fn main() {
     println!("{}", parse_cat2("bbcozbbc"));
     println!("{}", parse_cat2("bbcuzbbc"));
     println!("{}", parse_cat2(""));
+    println!("-----------");
+
+    println!("{}", parse_alt1("abc"));
+    println!("{}", parse_alt1("bbc"));
+    println!("{}", parse_alt1("bbczbbc"));
+    println!("{}", parse_alt1("azbbc"));
+    println!("{}", parse_alt1("ezbbc"));
+    println!("{}", parse_alt1("izbbc"));
+    println!("{}", parse_alt1("ozbbc"));
+    println!("{}", parse_alt1("uzbbc"));
+    println!("{}", parse_alt1("ze cat"));
+    println!("{}", parse_alt1(""));
 }

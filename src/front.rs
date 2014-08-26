@@ -78,19 +78,40 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 // TODO: implement choice parsing, also need to amend this to support
 // parsing of multiple rules
 fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
-    let mut v = vec!();
+    let mut choices = vec!();
     loop {
         match parser.token {
             libsyn::RBRACE => break,
             libsyn::EOF => break,
-            _ => v.push(parse_rule_chunk(parser)),
+            _ => choices.push(parse_rule_choice(parser)),
         }
     }
 
-    if v.len() == 1 {
-        v.move_iter().next().unwrap()
+    if choices.len() == 1 {
+        choices.move_iter().next().unwrap()
     } else {
-        Seq(v)
+        Alt(choices)
+    }
+}
+
+fn parse_rule_choice(parser: &mut libsyn::Parser) -> Expression {
+    let mut chunks = vec!();
+    loop {
+        match parser.token {
+            libsyn::RBRACE => break,
+            libsyn::EOF => break,
+            libsyn::BINOP(libsyn::SLASH) => {
+                parser.bump();
+                break;
+            },
+            _ => chunks.push(parse_rule_chunk(parser)),
+        }
+    }
+
+    if chunks.len() == 1 {
+        chunks.move_iter().next().unwrap()
+    } else {
+        Seq(chunks)
     }
 }
 

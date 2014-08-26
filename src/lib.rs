@@ -7,7 +7,7 @@ extern crate syntax;
 use front::{Expression, parse_grammar};
 use middle::convert;
 use front::{Terminal, AnyTerminal, TerminalString, PosLookahead, NegLookahead,
-            Class, ZeroOrMore, OneOrMore, Optional, Seq};
+            Class, ZeroOrMore, OneOrMore, Optional, Seq, Alt};
 
 use rustc::plugin::Registry;
 use std::gc::Gc;
@@ -172,10 +172,17 @@ fn generate_parser(
             )
         },
         Seq(ref v) => {
-            if v.len() == 0 { // basically like the empty expression
-                quote_expr!(cx, Ok($input_ident))
+            if v.len() == 0 {
+                fail!("Can't interpret a sequence of zero length");
             } else {
                 generate_seq_parser(cx, v.as_slice(), fn_name, input_ident)
+            }
+        },
+        Alt(ref v) => {
+            if v.len() == 0 {
+                fail!("Can't interpret a sequence of zero length");
+            } else {
+                generate_alt_parser(cx, v.as_slice(), fn_name, input_ident)
             }
         },
         _ => fail!("Unimplemented"),
@@ -201,6 +208,29 @@ fn generate_seq_parser(
             match $parser {
                 Err(e) => Err(e),
                 Ok(rem) => $parser2,
+            }
+        )
+    }
+}
+
+fn generate_alt_parser(
+    cx: &mut libsyn::ExtCtxt,
+    exprs: &[Expression],
+    fn_name: libsyn::Ident,
+    input_ident: libsyn::Ident,
+) -> Gc<libsyn::Expr> {
+    if exprs.len() == 0 {
+        fail!("Don't call generate_alt_parser with a slice of length 0")
+    } else if exprs.len() == 1 {
+        let parser = generate_parser(cx, &exprs[0], fn_name, input_ident);
+        quote_expr!(cx, $parser)
+    } else {
+        let parser = generate_parser(cx, &exprs[0], fn_name, input_ident);
+        let parser2 = generate_alt_parser(cx, exprs.slice_from(1), fn_name, input_ident);
+        quote_expr!(cx,
+            match $parser {
+                Err(e) => $parser2,
+                Ok(rem) => Ok(rem),
             }
         )
 
