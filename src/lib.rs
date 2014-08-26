@@ -30,13 +30,12 @@ fn expand(
     let mut parser = libsyn::new_parser_from_tts(cx.parse_sess(),
                                                  cx.cfg(),
                                                  Vec::from_slice(tts));
-
     let grammar = parse_grammar(&mut parser);
-    let parse_fn_name = grammar.name;
 
     match convert(grammar) {
         None => fail!("Conversion didn't work."),
         Some(g) => {
+            let parse_fn_name = g.name;
             let input = libsyn::Ident::new(libsyn::intern("input"));
 
             let parser_code = generate_parser(cx,
