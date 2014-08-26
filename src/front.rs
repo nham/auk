@@ -187,3 +187,89 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
         },
     }
 }
+
+mod test {
+    use syntax::parse::{ParseSess, new_parser_from_source_str, new_parse_sess};
+    use syntax::parse::parser::Parser;
+
+    use super::parse_rule_expr;
+    use super::{Terminal, AnyTerminal, TerminalString, Class, Optional,
+                ZeroOrMore, OneOrMore, PosLookahead, NegLookahead, Seq, Alt};
+
+    macro_rules! is_variant0(
+        ($e:expr, $i:ident) => (match $e { $i => true, _ => false })
+    )
+
+    macro_rules! is_variant1(
+        ($e:expr, $i:ident) => (match $e { $i(_) => true, _ => false })
+    )
+
+    fn new_parser<'a>(s: &str, sess: &'a ParseSess) -> Parser<'a> {
+        new_parser_from_source_str(sess, vec!(),
+                                   "bogus".to_string(),
+                                   s.to_string())
+    }
+
+    #[test]
+    fn test_parse_char() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("'c'", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), Terminal) );
+    }
+
+    #[test]
+    fn test_parse_dot() {
+        let sess = new_parse_sess();
+        let mut p = new_parser(".", &sess);
+        assert!( is_variant0!(parse_rule_expr(&mut p), AnyTerminal) );
+    }
+
+    #[test]
+    fn test_parse_str() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("\"abc\"", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), TerminalString) );
+    }
+
+    #[test]
+    fn test_parse_class() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("[\"abc\"]", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), Class) );
+    }
+
+    #[test]
+    fn test_parse_optional() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("[\"abc\"]?", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), Optional) );
+    }
+
+    #[test]
+    fn test_parse_zeroormore() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("[\"abc\"]*", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), ZeroOrMore) );
+    }
+
+    #[test]
+    fn test_parse_oneormore() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("[\"abc\"]+", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), OneOrMore) );
+    }
+
+    #[test]
+    fn test_parse_poslookahead() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("&[\"abc\"]+", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), PosLookahead) );
+    }
+
+    #[test]
+    fn test_parse_neglookahead() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("![\"abc\"]+", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), NegLookahead) );
+    }
+}
