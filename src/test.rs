@@ -227,8 +227,14 @@ mod test {
         )
 
         auk!(
-            grammar eeeneg {
+            grammar e_star_neg {
                 start = !'e'*
+            }
+        )
+
+        auk!(
+            grammar e_plus_neg {
+                start = !'e'+
             }
         )
 
@@ -247,10 +253,15 @@ mod test {
         assert_eq!(vowelsneg("baby"), Ok("baby"));
         assert_eq!(vowelsneg(""), Ok(""));
 
-        assert!(eeeneg("ehello").is_err());
-        assert!(eeeneg("eeeehello").is_err());
-        assert_eq!(eeeneg("hello"), Ok("hello"));
-        assert_eq!(eeeneg(""), Ok(""));
+        assert!(e_star_neg("ehello").is_err());
+        assert!(e_star_neg("eeeehello").is_err());
+        assert!(e_star_neg("hello").is_err());
+        assert!(e_star_neg("").is_err());
+
+        assert!(e_plus_neg("ehello").is_err());
+        assert!(e_plus_neg("eeeehello").is_err());
+        assert_eq!(e_plus_neg("hello"), Ok("hello"));
+        assert_eq!(e_plus_neg(""), Ok(""));
     }
 
     #[test]
@@ -280,7 +291,13 @@ mod test {
         )
 
         auk!(
-            grammar eeepos {
+            grammar e_star_pos {
+                start = &'e'*
+            }
+        )
+
+        auk!(
+            grammar e_plus_pos {
                 start = &'e'+
             }
         )
@@ -300,10 +317,15 @@ mod test {
         assert!(vowelspos("baby").is_err());
         assert!(vowelspos("").is_err());
 
-        assert_eq!(eeepos("ehello"), Ok("ehello"));
-        assert_eq!(eeepos("eeehello"), Ok("eeehello"));
-        assert!(eeepos("hello").is_err());
-        assert!(eeepos("").is_err());
+        assert_eq!(e_star_pos("ehello"), Ok("ehello"));
+        assert_eq!(e_star_pos("eeeehello"), Ok("eeeehello"));
+        assert_eq!(e_star_pos("hello"), Ok("hello"));
+        assert_eq!(e_star_pos(""), Ok(""));
+
+        assert_eq!(e_plus_pos("ehello"), Ok("ehello"));
+        assert_eq!(e_plus_pos("eeeehello"), Ok("eeeehello"));
+        assert!(e_plus_pos("hello").is_err());
+        assert!(e_plus_pos("").is_err());
     }
 
     #[test]
