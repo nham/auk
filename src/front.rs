@@ -97,14 +97,15 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 //
 // Currently we do not parse choices, just a sequence of chunks
 // TODO: need to amend this to support parsing of multiple rules
-fn parse_rule_expr(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
+fn parse_rule_expr(parser: &mut libsyn::Parser)
+-> Result<Expression, ParseError> {
     let mut choices = vec!();
     loop {
         match parser.token {
             libsyn::RBRACE => break,
             libsyn::EOF => break,
             libsyn::RPAREN => break,
-            _ => 
+            _ =>
                 match parse_rule_choice(parser) {
                     Err(e) => return Err(e),
                     Ok(expr) => choices.push(expr),
@@ -127,7 +128,8 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Result<Expression, ParseError
 //     choice1 / choice2 / ...
 //
 // then this function will parse choice1
-fn parse_rule_choice(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
+fn parse_rule_choice(parser: &mut libsyn::Parser)
+-> Result<Expression, ParseError> {
     let mut chunks = vec!();
     loop {
         match parser.token {
@@ -250,11 +252,13 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> 
                 _ => Err(Fail(format!("Mismatched parens"))),
             }
         },
-        libsyn::IDENT(_, _) => {
-            // lookahead to see if next is equals sign
-            // if yes, break. if no, parse it as non-terminal expr
-            // TODO: actually lookahead
-            Err(NextRule)
+        libsyn::IDENT(id, _) => {
+            if parser.look_ahead(1, |t| t == &libsyn::EQ) {
+                Err(NextRule)
+            } else {
+                parser.bump();
+                Ok(Nonterminal(id))
+            }
         },
         libsyn::EOF => {println!("returning EOI from parse_primary"); Err(EndOfInput)},
         _ => {
@@ -269,8 +273,8 @@ mod test {
     use syntax::parse::parser::Parser;
 
     use super::parse_rule_expr;
-    use super::{Terminal, AnyTerminal, TerminalString, Class, Optional,
-                ZeroOrMore, OneOrMore, PosLookahead, NegLookahead, Seq, Alt};
+    use super::{Terminal, AnyTerminal, TerminalString, Class, Optional, Seq, Alt,
+                ZeroOrMore, OneOrMore, PosLookahead, NegLookahead, Nonterminal};
 
     macro_rules! is_variant0(
         ($e:expr, $i:ident) => (match $e { $i => true, _ => false })
@@ -305,6 +309,15 @@ mod test {
         let sess = new_parse_sess();
         let mut p = new_parser("\"abc\"", &sess);
         assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), TerminalString) );
+    }
+
+    #[test]
+    fn test_parse_nonterminal() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("abc", &sess);
+        let res = parse_rule_expr(&mut p);
+        println!("{}", res.is_ok());
+        assert!( is_variant1!(res.unwrap(), Nonterminal) );
     }
 
     #[test]
