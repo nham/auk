@@ -95,8 +95,6 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 //             / Class
 //             / '.'
 //
-// Currently we do not parse choices, just a sequence of chunks
-// TODO: need to amend this to support parsing of multiple rules
 fn parse_rule_expr(parser: &mut libsyn::Parser)
 -> Result<Expression, ParseError> {
     let mut choices = vec!();
@@ -220,7 +218,6 @@ fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser)
 
 // A 'primary' is a char, a string, a dot, a character class, a parenthesized
 // expression or a non-terminal
-// TODO: implement non-terminals
 fn parse_primary(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
     match parser.token {
         libsyn::LIT_CHAR(name) => {
