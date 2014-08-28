@@ -7,6 +7,22 @@ use std::gc::Gc;
 
 pub fn generate_parser(
     cx: &mut libsyn::ExtCtxt,
+    rule_name: libsyn::Ident,
+    expr: &Expression,
+    input_ident: libsyn::Ident,
+) -> Gc<libsyn::Item> {
+    let parser_contents = generate_parser_expr(cx, expr, input_ident);
+    let qi = quote_item!(cx,
+        fn $rule_name<'a>(input: &'a str) -> Result<&'a str, String> {
+            $parser_contents
+        }
+    );
+
+    qi.unwrap()
+}
+
+fn generate_parser_expr(
+    cx: &mut libsyn::ExtCtxt,
     expr: &Expression,
     input_ident: libsyn::Ident,
 ) -> Gc<libsyn::Expr> {
@@ -54,7 +70,7 @@ pub fn generate_parser(
             )
         },
         PosLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e, input_ident);
+            let parser = generate_parser_expr(cx, &**e, input_ident);
             quote_expr!(cx,
                 {
                     let res: Result<&'a str, String> = $parser;
@@ -66,7 +82,7 @@ pub fn generate_parser(
             )
         },
         NegLookahead(ref e) => {
-            let parser = generate_parser(cx, &**e, input_ident);
+            let parser = generate_parser_expr(cx, &**e, input_ident);
             quote_expr!(cx,
                 {
                     let res: Result<&'a str, String> = $parser;
@@ -94,7 +110,7 @@ pub fn generate_parser(
             )
         },
         ZeroOrMore(ref e) => {
-            let parser = generate_parser(cx, &**e, input_ident);
+            let parser = generate_parser_expr(cx, &**e, input_ident);
             let new_fn_name = libsyn::gensym_ident("star");
             quote_expr!(cx,
                 {
@@ -114,7 +130,7 @@ pub fn generate_parser(
             )
         },
         OneOrMore(ref e) => {
-            let parser = generate_parser(cx, &**e, input_ident);
+            let parser = generate_parser_expr(cx, &**e, input_ident);
             let new_fn_name = libsyn::gensym_ident("plus");
             quote_expr!(cx,
                 {
@@ -142,7 +158,7 @@ pub fn generate_parser(
             )
         },
         Optional(ref e) => {
-            let parser = generate_parser(cx, &**e, input_ident);
+            let parser = generate_parser_expr(cx, &**e, input_ident);
             quote_expr!(cx,
                 match $parser {
                     Ok(rem) => Ok(rem),
@@ -176,10 +192,10 @@ fn generate_seq_parser(
     if exprs.len() == 0 {
         fail!("Don't call generate_seq_parser with a slice of length 0")
     } else if exprs.len() == 1 {
-        let parser = generate_parser(cx, &exprs[0], input_ident);
+        let parser = generate_parser_expr(cx, &exprs[0], input_ident);
         quote_expr!(cx, $parser)
     } else {
-        let parser = generate_parser(cx, &exprs[0], input_ident);
+        let parser = generate_parser_expr(cx, &exprs[0], input_ident);
         let rem = libsyn::Ident::new(libsyn::intern("rem"));
         let parser2 = generate_seq_parser(cx, exprs.slice_from(1), rem);
         quote_expr!(cx,
@@ -199,10 +215,10 @@ fn generate_alt_parser(
     if exprs.len() == 0 {
         fail!("Don't call generate_alt_parser with a slice of length 0")
     } else if exprs.len() == 1 {
-        let parser = generate_parser(cx, &exprs[0], input_ident);
+        let parser = generate_parser_expr(cx, &exprs[0], input_ident);
         quote_expr!(cx, $parser)
     } else {
-        let parser = generate_parser(cx, &exprs[0], input_ident);
+        let parser = generate_parser_expr(cx, &exprs[0], input_ident);
         let parser2 = generate_alt_parser(cx, exprs.slice_from(1), input_ident);
         quote_expr!(cx,
             match $parser {

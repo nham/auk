@@ -37,15 +37,19 @@ fn expand(
             let grammar_name = g.name;
             let input = libsyn::Ident::new(libsyn::intern("input"));
 
-            let parser_code = generate_parser(cx,
-                                              g.rules.find(&g.start).unwrap(),
-                                              input);
+            let start_rule = g.start;
+            let rule_parsers = generate_parser(cx,
+                                               start_rule,
+                                               g.rules.find(&g.start).unwrap(),
+                                               input);
             let qi =
                 quote_item!(cx,
                     mod $grammar_name {
                         pub fn parse<'a>(input: &'a str) -> Result<&'a str, String> {
-                            $parser_code
+                            $start_rule(input)
                         }
+
+                        $rule_parsers
                     }
                 );
             libsyn::MacItem::new( qi.unwrap() )
