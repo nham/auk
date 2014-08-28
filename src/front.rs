@@ -28,6 +28,13 @@ pub struct Rule {
     pub expr: Box<Expression>
 }
 
+#[deriving(Show)]
+enum ParseError {
+    Fail(String),
+    NextRule,
+    EndOfInput,
+}
+
 pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
     if !consume_grammar_keyword(parser) {
         let tok = parser.this_token_to_string();
@@ -68,7 +75,12 @@ fn consume_grammar_keyword(parser: &mut libsyn::Parser) -> bool {
 fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
     let name = parser.parse_ident();
     parser.expect(&libsyn::EQ);
-    Rule { name: name, expr: box parse_rule_expr(parser) }
+    match parse_rule_expr(parser) {
+        Ok(expr) => Rule { name: name, expr: box expr },
+        Err(EndOfInput) => fail!("Unexpected end of input"),
+        Err(Fail(s)) => fail!("Failed to parse rule: {}", s),
+        _ => fail!("Something bad happened"),
+    }
 }
 
 // This is how we do it
@@ -85,21 +97,27 @@ fn parse_rule(parser: &mut libsyn::Parser) -> Rule {
 //
 // Currently we do not parse choices, just a sequence of chunks
 // TODO: need to amend this to support parsing of multiple rules
-fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
+fn parse_rule_expr(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
     let mut choices = vec!();
     loop {
         match parser.token {
             libsyn::RBRACE => break,
             libsyn::EOF => break,
             libsyn::RPAREN => break,
-            _ => choices.push(parse_rule_choice(parser)),
+            _ => 
+                match parse_rule_choice(parser) {
+                    Err(e) => return Err(e),
+                    Ok(expr) => choices.push(expr),
+                },
         }
     }
 
-    if choices.len() == 1 {
-        choices.move_iter().next().unwrap()
+    if choices.len() == 0 {
+        Err(Fail(format!("Failed to parse an expression")))
+    } else if choices.len() == 1 {
+        Ok(choices.move_iter().next().unwrap())
     } else {
-        Alt(choices)
+        Ok(Alt(choices))
     }
 }
 
@@ -109,60 +127,78 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
 //     choice1 / choice2 / ...
 //
 // then this function will parse choice1
-fn parse_rule_choice(parser: &mut libsyn::Parser) -> Expression {
+fn parse_rule_choice(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
     let mut chunks = vec!();
     loop {
         match parser.token {
-            libsyn::RBRACE => break,
             libsyn::EOF => break,
+            libsyn::RBRACE => break,
             libsyn::RPAREN => break,
             libsyn::BINOP(libsyn::SLASH) => {
                 parser.bump();
                 break;
             },
-            _ => chunks.push(parse_rule_chunk(parser)),
+            _ =>
+                match parse_rule_chunk(parser) {
+                    Ok(expr) => chunks.push(expr),
+                    Err(e) => return Err(e),
+                },
         }
     }
 
-    if chunks.len() == 1 {
-        chunks.move_iter().next().unwrap()
+    if chunks.len() == 0 {
+        Err(Fail(format!("Could not parse any chunks")))
+    } else if chunks.len() == 1 {
+        Ok(chunks.move_iter().next().unwrap())
     } else {
-        Seq(chunks)
+        Ok(Seq(chunks))
     }
 }
 
-fn parse_rule_chunk(parser: &mut libsyn::Parser) -> Expression {
+fn parse_rule_chunk(parser: &mut libsyn::Parser)
+-> Result<Expression, ParseError> {
     match parser.token {
         libsyn::BINOP(libsyn::AND) => {
             parser.bump();
-            return PosLookahead(box parse_rule_chunk(parser));
+            match parse_rule_chunk(parser) {
+                Err(e) => Err(e),
+                Ok(expr) => Ok(PosLookahead(box expr)),
+            }
         },
         libsyn::NOT => {
             parser.bump();
-            return NegLookahead(box parse_rule_chunk(parser));
+            match parse_rule_chunk(parser) {
+                Err(e) => Err(e),
+                Ok(expr) => Ok(NegLookahead(box expr)),
+            }
         },
         _ => parse_rule_chunk_no_prefix(parser),
     }
 }
 
 
-fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser) -> Expression {
-    let expr = parse_primary(parser);
+fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser)
+-> Result<Expression, ParseError> {
+    let expr = match parse_primary(parser) {
+        Ok(expr) => expr,
+        Err(e) => return Err(e),
+    };
+
     match parser.token {
         libsyn::BINOP(libsyn::STAR) => {
             parser.bump();
-            return ZeroOrMore(box expr);
+            Ok( ZeroOrMore(box expr) )
         },
         libsyn::BINOP(libsyn::PLUS) => {
             parser.bump();
-            return OneOrMore(box expr);
+            Ok( OneOrMore(box expr) )
         },
         libsyn::QUESTION => {
             parser.bump();
-            return Optional(box expr);
+            Ok( Optional(box expr) )
         },
-        _ => return expr, // this is probably not right. need to check
-                          // if its the next rule or whatever
+        _ => Ok(expr), // this is probably not right. need to check
+                       // if its the next rule or whatever
     }
 }
 
@@ -170,19 +206,19 @@ fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser) -> Expression {
 // A 'primary' is a char, a string, a dot, a character class, a parenthesized
 // expression or a non-terminal
 // TODO: implement non-terminals
-fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
+fn parse_primary(parser: &mut libsyn::Parser) -> Result<Expression, ParseError> {
     match parser.token {
         libsyn::LIT_CHAR(name) => {
             parser.bump();
-            return Terminal( libsyn::get_name(name).get().char_at(0) );
+            Ok(Terminal( libsyn::get_name(name).get().char_at(0) ))
         },
         libsyn::LIT_STR(name) => {
             parser.bump();
-            return TerminalString( libsyn::get_name(name).get().to_string() );
+            Ok(TerminalString( libsyn::get_name(name).get().to_string() ))
         },
         libsyn::DOT => {
             parser.bump();
-            return AnyTerminal;
+            Ok(AnyTerminal)
         },
         libsyn::LBRACKET => {
             parser.bump();
@@ -194,12 +230,12 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
                     match parser.token {
                         libsyn::RBRACKET => {
                             parser.bump();
-                            return Class(s);
+                            Ok(Class(s))
                         },
-                        _ => fail!("Character class must end with ']'"),
+                        _ => Err(Fail(format!("Character class must end with ']'"))),
                     }
                 },
-                _ => fail!("Character class has the form '[\"<chars>\"]'"),
+                _ => Err(Fail(format!("Character class has the form '[\"<chars>\"]'"))),
             }
 
         },
@@ -211,11 +247,18 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
                     parser.bump();
                     expr
                 },
-                _ => fail!("Mismatched parens"),
+                _ => Err(Fail(format!("Mismatched parens"))),
             }
         },
+        libsyn::IDENT(_, _) => {
+            // lookahead to see if next is equals sign
+            // if yes, break. if no, parse it as non-terminal expr
+            // TODO: actually lookahead
+            Err(NextRule)
+        },
+        libsyn::EOF => {println!("returning EOI from parse_primary"); Err(EndOfInput)},
         _ => {
-            fail!("Couldn't find any non-prefix to parse");
+            Err(Fail(format!("Couldn't find any non-prefix to parse")))
         },
     }
 }
@@ -247,83 +290,83 @@ mod test {
     fn test_parse_char() {
         let sess = new_parse_sess();
         let mut p = new_parser("'c'", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), Terminal) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), Terminal) );
     }
 
     #[test]
     fn test_parse_dot() {
         let sess = new_parse_sess();
         let mut p = new_parser(".", &sess);
-        assert!( is_variant0!(parse_rule_expr(&mut p), AnyTerminal) );
+        assert!( is_variant0!(parse_rule_expr(&mut p).unwrap(), AnyTerminal) );
     }
 
     #[test]
     fn test_parse_str() {
         let sess = new_parse_sess();
         let mut p = new_parser("\"abc\"", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), TerminalString) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), TerminalString) );
     }
 
     #[test]
     fn test_parse_class() {
         let sess = new_parse_sess();
         let mut p = new_parser("[\"abc\"]", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), Class) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), Class) );
     }
 
     #[test]
     fn test_parse_optional() {
         let sess = new_parse_sess();
         let mut p = new_parser("[\"abc\"]?", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), Optional) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), Optional) );
     }
 
     #[test]
     fn test_parse_zeroormore() {
         let sess = new_parse_sess();
         let mut p = new_parser("[\"abc\"]*", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), ZeroOrMore) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), ZeroOrMore) );
     }
 
     #[test]
     fn test_parse_oneormore() {
         let sess = new_parse_sess();
         let mut p = new_parser("[\"abc\"]+", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), OneOrMore) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), OneOrMore) );
     }
 
     #[test]
     fn test_parse_poslookahead() {
         let sess = new_parse_sess();
         let mut p = new_parser("&[\"abc\"]+", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), PosLookahead) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), PosLookahead) );
     }
 
     #[test]
     fn test_parse_neglookahead() {
         let sess = new_parse_sess();
         let mut p = new_parser("![\"abc\"]+", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), NegLookahead) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), NegLookahead) );
     }
 
     #[test]
     fn test_parse_seq() {
         let sess = new_parse_sess();
         let mut p = new_parser("![\"abc\"]+ &.", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), Seq) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), Seq) );
     }
 
     #[test]
     fn test_parse_alt() {
         let sess = new_parse_sess();
         let mut p = new_parser("![\"abc\"]+ / 'e'*", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), Alt) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), Alt) );
     }
 
     #[test]
     fn test_parse_parens() {
         let sess = new_parse_sess();
         let mut p = new_parser("!([\"abc\"]+ / ('e' \"abc\")*)", &sess);
-        assert!( is_variant1!(parse_rule_expr(&mut p), NegLookahead) );
+        assert!( is_variant1!(parse_rule_expr(&mut p).unwrap(), NegLookahead) );
     }
 }
