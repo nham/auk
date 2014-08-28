@@ -40,9 +40,17 @@ pub fn parse_grammar(parser: &mut libsyn::Parser) -> Grammar {
     let name = parser.parse_ident();
     parser.expect(&libsyn::LBRACE);
     let mut v = vec!();
-    v.push( parse_rule(parser) );
+    loop {
+        match parser.token {
+            libsyn::RBRACE => {
+                parser.bump();
+                break
+            },
+            _ => v.push( parse_rule(parser) ),
+        }
+    }
     //thing goes here
-    parser.expect(&libsyn::RBRACE);
+    parser.expect(&libsyn::EOF);
     Grammar { name: name, rules: v }
 }
 
