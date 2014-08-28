@@ -161,7 +161,7 @@ fn parse_rule_chunk_no_prefix(parser: &mut libsyn::Parser) -> Expression {
 
 // A 'primary' is a char, a string, a dot, a character class, a parenthesized
 // expression or a non-terminal
-// TODO: implement non-terminals, parens
+// TODO: implement non-terminals
 fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
     match parser.token {
         libsyn::LIT_CHAR(name) => {
