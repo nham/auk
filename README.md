@@ -7,10 +7,10 @@ Parsers are generated at compile time. For example:
 ```
 auk!(
     grammar foo {
-        start = ('z' / "abc" / ["aeiou"])?
+        start = ('z' / "abc" / ["aeiou"])*
     }
 )
 
 // prints "HELLO", the remaining input
-println!("{}", foo::parse("zabcooooozzzHELLO"));
+println!("{}", foo::parse("zabcoouuizzzHELLO"));
 ```
