@@ -34,7 +34,7 @@ fn expand(
     match convert(grammar) {
         None => fail!("Conversion didn't work."),
         Some(g) => {
-            let parse_fn_name = g.name;
+            let grammar_name = g.name;
             let input = libsyn::Ident::new(libsyn::intern("input"));
 
             let parser_code = generate_parser(cx,
@@ -42,8 +42,10 @@ fn expand(
                                               input);
             let qi =
                 quote_item!(cx,
-                    fn $parse_fn_name<'a>(input: &'a str) -> Result<&'a str, String> {
-                        $parser_code
+                    mod $grammar_name {
+                        pub fn parse<'a>(input: &'a str) -> Result<&'a str, String> {
+                            $parser_code
+                        }
                     }
                 );
             libsyn::MacItem::new( qi.unwrap() )

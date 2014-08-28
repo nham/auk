@@ -15,9 +15,9 @@ mod test {
             }
         )
 
-        assert_eq!(achar("zog"), Ok("og"));
-        assert!(achar("wat").is_err());
-        assert!(achar("").is_err());
+        assert_eq!(achar::parse("zog"), Ok("og"));
+        assert!(achar::parse("wat").is_err());
+        assert!(achar::parse("").is_err());
     }
 
     #[test]
@@ -28,9 +28,9 @@ mod test {
             }
         )
 
-        assert_eq!(astr("abcde"), Ok("de"));
-        assert!(astr("abde").is_err());
-        assert!(astr("").is_err());
+        assert_eq!(astr::parse("abcde"), Ok("de"));
+        assert!(astr::parse("abde").is_err());
+        assert!(astr::parse("").is_err());
     }
 
     #[test]
@@ -41,8 +41,8 @@ mod test {
             }
         )
 
-        assert_eq!(dot("abcde"), Ok("bcde"));
-        assert!(dot("").is_err());
+        assert_eq!(dot::parse("abcde"), Ok("bcde"));
+        assert!(dot::parse("").is_err());
     }
 
     #[test]
@@ -53,13 +53,13 @@ mod test {
             }
         )
 
-        assert_eq!(vowels("acaptain"), Ok("captain"));
-        assert_eq!(vowels("ecaptain"), Ok("captain"));
-        assert_eq!(vowels("icaptain"), Ok("captain"));
-        assert_eq!(vowels("ocaptain"), Ok("captain"));
-        assert_eq!(vowels("ucaptain"), Ok("captain"));
-        assert!(vowels("captain").is_err());
-        assert!(vowels("").is_err());
+        assert_eq!(vowels::parse("acaptain"), Ok("captain"));
+        assert_eq!(vowels::parse("ecaptain"), Ok("captain"));
+        assert_eq!(vowels::parse("icaptain"), Ok("captain"));
+        assert_eq!(vowels::parse("ocaptain"), Ok("captain"));
+        assert_eq!(vowels::parse("ucaptain"), Ok("captain"));
+        assert!(vowels::parse("captain").is_err());
+        assert!(vowels::parse("").is_err());
     }
 
     #[test]
@@ -94,35 +94,35 @@ mod test {
             }
         )
 
-        assert_eq!(zopt("zabc"), Ok("abc"));
-        assert_eq!(zopt("abc"), Ok("abc"));
-        assert_eq!(zopt(""), Ok(""));
+        assert_eq!(zopt::parse("zabc"), Ok("abc"));
+        assert_eq!(zopt::parse("abc"), Ok("abc"));
+        assert_eq!(zopt::parse(""), Ok(""));
 
-        assert_eq!(dotopt("..."), Ok(".."));
-        assert_eq!(dotopt("abc"), Ok("bc"));
-        assert_eq!(dotopt(""), Ok(""));
+        assert_eq!(dotopt::parse("..."), Ok(".."));
+        assert_eq!(dotopt::parse("abc"), Ok("bc"));
+        assert_eq!(dotopt::parse(""), Ok(""));
 
-        assert_eq!(abcopt("abc"), Ok(""));
-        assert_eq!(abcopt("abcabcabcdef"), Ok("abcabcdef"));
-        assert_eq!(abcopt("abba"), Ok("abba"));
-        assert_eq!(abcopt(""), Ok(""));
+        assert_eq!(abcopt::parse("abc"), Ok(""));
+        assert_eq!(abcopt::parse("abcabcabcdef"), Ok("abcabcdef"));
+        assert_eq!(abcopt::parse("abba"), Ok("abba"));
+        assert_eq!(abcopt::parse(""), Ok(""));
 
-        assert_eq!(vowelopt("a"), Ok(""));
-        assert_eq!(vowelopt("e"), Ok(""));
-        assert_eq!(vowelopt("i"), Ok(""));
-        assert_eq!(vowelopt("o"), Ok(""));
-        assert_eq!(vowelopt("u"), Ok(""));
-        assert_eq!(vowelopt("cat"), Ok("cat"));
-        assert_eq!(vowelopt(""), Ok(""));
+        assert_eq!(vowelopt::parse("a"), Ok(""));
+        assert_eq!(vowelopt::parse("e"), Ok(""));
+        assert_eq!(vowelopt::parse("i"), Ok(""));
+        assert_eq!(vowelopt::parse("o"), Ok(""));
+        assert_eq!(vowelopt::parse("u"), Ok(""));
+        assert_eq!(vowelopt::parse("cat"), Ok("cat"));
+        assert_eq!(vowelopt::parse(""), Ok(""));
 
-        assert_eq!(parenopt("zabc"), Ok("abc"));
-        assert_eq!(parenopt("abcabcabcdef"), Ok("abcabcdef"));
-        assert_eq!(parenopt("abbc"), Ok("bbc"));
-        assert_eq!(parenopt("ebbc"), Ok("bbc"));
-        assert_eq!(parenopt("ibbc"), Ok("bbc"));
-        assert_eq!(parenopt("obbc"), Ok("bbc"));
-        assert_eq!(parenopt("ubbc"), Ok("bbc"));
-        assert_eq!(parenopt("hello"), Ok("hello"));
+        assert_eq!(parenopt::parse("zabc"), Ok("abc"));
+        assert_eq!(parenopt::parse("abcabcabcdef"), Ok("abcabcdef"));
+        assert_eq!(parenopt::parse("abbc"), Ok("bbc"));
+        assert_eq!(parenopt::parse("ebbc"), Ok("bbc"));
+        assert_eq!(parenopt::parse("ibbc"), Ok("bbc"));
+        assert_eq!(parenopt::parse("obbc"), Ok("bbc"));
+        assert_eq!(parenopt::parse("ubbc"), Ok("bbc"));
+        assert_eq!(parenopt::parse("hello"), Ok("hello"));
     }
 
     #[test]
@@ -157,30 +157,30 @@ mod test {
             }
         )
 
-        assert_eq!(zstar("zabc"), Ok("abc"));
-        assert_eq!(zstar("zzzzzzzabc"), Ok("abc"));
-        assert_eq!(zstar("abc"), Ok("abc"));
-        assert_eq!(zstar(""), Ok(""));
+        assert_eq!(zstar::parse("zabc"), Ok("abc"));
+        assert_eq!(zstar::parse("zzzzzzzabc"), Ok("abc"));
+        assert_eq!(zstar::parse("abc"), Ok("abc"));
+        assert_eq!(zstar::parse(""), Ok(""));
 
-        assert_eq!(dotstar("the cat in the hat. sat! on the? mat"), Ok(""));
-        assert_eq!(dotstar(""), Ok(""));
+        assert_eq!(dotstar::parse("the cat in the hat. sat! on the? mat"), Ok(""));
+        assert_eq!(dotstar::parse(""), Ok(""));
 
-        assert_eq!(abcstar("abc"), Ok(""));
-        assert_eq!(abcstar("abcabcabcdef"), Ok("def"));
-        assert_eq!(abcstar("abba"), Ok("abba"));
-        assert_eq!(abcstar(""), Ok(""));
+        assert_eq!(abcstar::parse("abc"), Ok(""));
+        assert_eq!(abcstar::parse("abcabcabcdef"), Ok("def"));
+        assert_eq!(abcstar::parse("abba"), Ok("abba"));
+        assert_eq!(abcstar::parse(""), Ok(""));
 
-        assert_eq!(vowelstar("e"), Ok(""));
-        assert_eq!(vowelstar("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
-        assert_eq!(vowelstar("cat"), Ok("cat"));
-        assert_eq!(vowelstar(""), Ok(""));
+        assert_eq!(vowelstar::parse("e"), Ok(""));
+        assert_eq!(vowelstar::parse("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert_eq!(vowelstar::parse("cat"), Ok("cat"));
+        assert_eq!(vowelstar::parse(""), Ok(""));
 
-        assert_eq!(parenstar("zzzzxy"), Ok("xy"));
-        assert_eq!(parenstar("abcabcabcdef"), Ok("def"));
-        assert_eq!(parenstar("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
-        assert_eq!(parenstar("zabczaeoabcuzabc"), Ok(""));
-        assert_eq!(parenstar(""), Ok(""));
-        assert_eq!(parenstar("hello"), Ok("hello"));
+        assert_eq!(parenstar::parse("zzzzxy"), Ok("xy"));
+        assert_eq!(parenstar::parse("abcabcabcdef"), Ok("def"));
+        assert_eq!(parenstar::parse("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert_eq!(parenstar::parse("zabczaeoabcuzabc"), Ok(""));
+        assert_eq!(parenstar::parse(""), Ok(""));
+        assert_eq!(parenstar::parse("hello"), Ok("hello"));
     }
 
     #[test]
@@ -215,30 +215,30 @@ mod test {
             }
         )
 
-        assert_eq!(zplus("zabc"), Ok("abc"));
-        assert_eq!(zplus("zzzzzzzabc"), Ok("abc"));
-        assert!(zplus("abc").is_err());
-        assert!(zplus("").is_err());
+        assert_eq!(zplus::parse("zabc"), Ok("abc"));
+        assert_eq!(zplus::parse("zzzzzzzabc"), Ok("abc"));
+        assert!(zplus::parse("abc").is_err());
+        assert!(zplus::parse("").is_err());
 
-        assert_eq!(dotplus("the cat in the hat. sat! on the? mat"), Ok(""));
-        assert!(dotplus("").is_err());
+        assert_eq!(dotplus::parse("the cat in the hat. sat! on the? mat"), Ok(""));
+        assert!(dotplus::parse("").is_err());
 
-        assert_eq!(abcplus("abc"), Ok(""));
-        assert_eq!(abcplus("abcabcabcdef"), Ok("def"));
-        assert!(abcplus("abba").is_err());
-        assert!(abcplus("").is_err());
+        assert_eq!(abcplus::parse("abc"), Ok(""));
+        assert_eq!(abcplus::parse("abcabcabcdef"), Ok("def"));
+        assert!(abcplus::parse("abba").is_err());
+        assert!(abcplus::parse("").is_err());
 
-        assert_eq!(vowelplus("e"), Ok(""));
-        assert_eq!(vowelplus("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
-        assert!(vowelplus("cat").is_err());
-        assert!(vowelplus("").is_err());
+        assert_eq!(vowelplus::parse("e"), Ok(""));
+        assert_eq!(vowelplus::parse("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert!(vowelplus::parse("cat").is_err());
+        assert!(vowelplus::parse("").is_err());
 
-        assert_eq!(parenplus("zzzzxy"), Ok("xy"));
-        assert_eq!(parenplus("abcabcabcdef"), Ok("def"));
-        assert_eq!(parenplus("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
-        assert_eq!(parenplus("zabczaeoabcuzabc"), Ok(""));
-        assert!(parenplus("").is_err());
-        assert!(parenplus("hello").is_err());
+        assert_eq!(parenplus::parse("zzzzxy"), Ok("xy"));
+        assert_eq!(parenplus::parse("abcabcabcdef"), Ok("def"));
+        assert_eq!(parenplus::parse("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert_eq!(parenplus::parse("zabczaeoabcuzabc"), Ok(""));
+        assert!(parenplus::parse("").is_err());
+        assert!(parenplus::parse("hello").is_err());
     }
 
     #[test]
@@ -279,30 +279,30 @@ mod test {
             }
         )
 
-        assert!(zneg("zog").is_err());
-        assert_eq!(zneg("wat"), Ok("wat"));
-        assert_eq!(zneg(""), Ok(""));
+        assert!(zneg::parse("zog").is_err());
+        assert_eq!(zneg::parse("wat"), Ok("wat"));
+        assert_eq!(zneg::parse(""), Ok(""));
 
-        assert!(abcneg("abcde").is_err());
-        assert_eq!(abcneg("abde"), Ok("abde"));
-        assert_eq!(abcneg(""), Ok(""));
+        assert!(abcneg::parse("abcde").is_err());
+        assert_eq!(abcneg::parse("abde"), Ok("abde"));
+        assert_eq!(abcneg::parse(""), Ok(""));
 
-        assert!(dotneg("zuh").is_err());
-        assert_eq!(dotneg(""), Ok(""));
+        assert!(dotneg::parse("zuh").is_err());
+        assert_eq!(dotneg::parse(""), Ok(""));
 
-        assert!(vowelsneg("oof").is_err());
-        assert_eq!(vowelsneg("baby"), Ok("baby"));
-        assert_eq!(vowelsneg(""), Ok(""));
+        assert!(vowelsneg::parse("oof").is_err());
+        assert_eq!(vowelsneg::parse("baby"), Ok("baby"));
+        assert_eq!(vowelsneg::parse(""), Ok(""));
 
-        assert!(e_star_neg("ehello").is_err());
-        assert!(e_star_neg("eeeehello").is_err());
-        assert!(e_star_neg("hello").is_err());
-        assert!(e_star_neg("").is_err());
+        assert!(e_star_neg::parse("ehello").is_err());
+        assert!(e_star_neg::parse("eeeehello").is_err());
+        assert!(e_star_neg::parse("hello").is_err());
+        assert!(e_star_neg::parse("").is_err());
 
-        assert!(e_plus_neg("ehello").is_err());
-        assert!(e_plus_neg("eeeehello").is_err());
-        assert_eq!(e_plus_neg("hello"), Ok("hello"));
-        assert_eq!(e_plus_neg(""), Ok(""));
+        assert!(e_plus_neg::parse("ehello").is_err());
+        assert!(e_plus_neg::parse("eeeehello").is_err());
+        assert_eq!(e_plus_neg::parse("hello"), Ok("hello"));
+        assert_eq!(e_plus_neg::parse(""), Ok(""));
     }
 
     #[test]
@@ -343,30 +343,30 @@ mod test {
             }
         )
 
-        assert_eq!(zpos("zog"), Ok("zog"));
-        assert!(zpos("wat").is_err());
-        assert!(zpos("").is_err());
+        assert_eq!(zpos::parse("zog"), Ok("zog"));
+        assert!(zpos::parse("wat").is_err());
+        assert!(zpos::parse("").is_err());
 
-        assert_eq!(abcpos("abcde"), Ok("abcde"));
-        assert!(abcpos("abde").is_err());
-        assert!(abcpos("").is_err());
+        assert_eq!(abcpos::parse("abcde"), Ok("abcde"));
+        assert!(abcpos::parse("abde").is_err());
+        assert!(abcpos::parse("").is_err());
 
-        assert_eq!(dotpos("zuh"), Ok("zuh"));
-        assert!(dotpos("").is_err());
+        assert_eq!(dotpos::parse("zuh"), Ok("zuh"));
+        assert!(dotpos::parse("").is_err());
 
-        assert_eq!(vowelspos("oof"), Ok("oof"));
-        assert!(vowelspos("baby").is_err());
-        assert!(vowelspos("").is_err());
+        assert_eq!(vowelspos::parse("oof"), Ok("oof"));
+        assert!(vowelspos::parse("baby").is_err());
+        assert!(vowelspos::parse("").is_err());
 
-        assert_eq!(e_star_pos("ehello"), Ok("ehello"));
-        assert_eq!(e_star_pos("eeeehello"), Ok("eeeehello"));
-        assert_eq!(e_star_pos("hello"), Ok("hello"));
-        assert_eq!(e_star_pos(""), Ok(""));
+        assert_eq!(e_star_pos::parse("ehello"), Ok("ehello"));
+        assert_eq!(e_star_pos::parse("eeeehello"), Ok("eeeehello"));
+        assert_eq!(e_star_pos::parse("hello"), Ok("hello"));
+        assert_eq!(e_star_pos::parse(""), Ok(""));
 
-        assert_eq!(e_plus_pos("ehello"), Ok("ehello"));
-        assert_eq!(e_plus_pos("eeeehello"), Ok("eeeehello"));
-        assert!(e_plus_pos("hello").is_err());
-        assert!(e_plus_pos("").is_err());
+        assert_eq!(e_plus_pos::parse("ehello"), Ok("ehello"));
+        assert_eq!(e_plus_pos::parse("eeeehello"), Ok("eeeehello"));
+        assert!(e_plus_pos::parse("hello").is_err());
+        assert!(e_plus_pos::parse("").is_err());
     }
 
     #[test]
@@ -389,23 +389,23 @@ mod test {
             }
         )
 
-        assert!(seq1("abc").is_err());
-        assert!(seq1("abcde").is_err());
-        assert!(seq1("").is_err());
-        assert_eq!(seq1("abcdefgh"), Ok("gh"));
+        assert!(seq1::parse("abc").is_err());
+        assert!(seq1::parse("abcde").is_err());
+        assert!(seq1::parse("").is_err());
+        assert_eq!(seq1::parse("abcdefgh"), Ok("gh"));
 
-        assert!(seq2("x").is_err());
-        assert!(seq2("").is_err());
-        assert_eq!(seq2("xyz"), Ok("z"));
+        assert!(seq2::parse("x").is_err());
+        assert!(seq2::parse("").is_err());
+        assert_eq!(seq2::parse("xyz"), Ok("z"));
 
-        assert!(alt3("bbc").is_err());
-        assert!(alt3("").is_err());
-        assert_eq!(alt3("bbczbbc"), Ok("bbc"));
-        assert_eq!(alt3("bbcazbbc"), Ok("bbc"));
-        assert_eq!(alt3("bbcezbbc"), Ok("bbc"));
-        assert_eq!(alt3("bbcizbbc"), Ok("bbc"));
-        assert_eq!(alt3("bbcozbbc"), Ok("bbc"));
-        assert_eq!(alt3("bbcuzbbc"), Ok("bbc"));
+        assert!(alt3::parse("bbc").is_err());
+        assert!(alt3::parse("").is_err());
+        assert_eq!(alt3::parse("bbczbbc"), Ok("bbc"));
+        assert_eq!(alt3::parse("bbcazbbc"), Ok("bbc"));
+        assert_eq!(alt3::parse("bbcezbbc"), Ok("bbc"));
+        assert_eq!(alt3::parse("bbcizbbc"), Ok("bbc"));
+        assert_eq!(alt3::parse("bbcozbbc"), Ok("bbc"));
+        assert_eq!(alt3::parse("bbcuzbbc"), Ok("bbc"));
     }
 
     #[test]
@@ -428,27 +428,27 @@ mod test {
             }
         )
 
-        assert_eq!(alt1("abc"), Ok(""));
-        assert_eq!(alt1("abcdef"), Ok("def"));
-        assert_eq!(alt1("def"), Ok(""));
-        assert_eq!(alt1("defgh"), Ok("gh"));
-        assert!(alt1("").is_err());
+        assert_eq!(alt1::parse("abc"), Ok(""));
+        assert_eq!(alt1::parse("abcdef"), Ok("def"));
+        assert_eq!(alt1::parse("def"), Ok(""));
+        assert_eq!(alt1::parse("defgh"), Ok("gh"));
+        assert!(alt1::parse("").is_err());
 
-        assert_eq!(alt2("x"), Ok(""));
-        assert_eq!(alt2("xy"), Ok("y"));
-        assert_eq!(alt2("y"), Ok(""));
-        assert_eq!(alt2("yza"), Ok("za"));
-        assert!(alt2("").is_err());
+        assert_eq!(alt2::parse("x"), Ok(""));
+        assert_eq!(alt2::parse("xy"), Ok("y"));
+        assert_eq!(alt2::parse("y"), Ok(""));
+        assert_eq!(alt2::parse("yza"), Ok("za"));
+        assert!(alt2::parse("").is_err());
 
-        assert_eq!(alt3("bbc"), Ok(""));
-        assert_eq!(alt3("bbczbbc"), Ok("zbbc"));
-        assert_eq!(alt3("azbbc"), Ok("zbbc"));
-        assert_eq!(alt3("ezbbc"), Ok("zbbc"));
-        assert_eq!(alt3("izbbc"), Ok("zbbc"));
-        assert_eq!(alt3("ozbbc"), Ok("zbbc"));
-        assert_eq!(alt3("uzbbc"), Ok("zbbc"));
-        assert_eq!(alt3("zog"), Ok("og"));
-        assert!(alt3("").is_err());
+        assert_eq!(alt3::parse("bbc"), Ok(""));
+        assert_eq!(alt3::parse("bbczbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("azbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("ezbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("izbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("ozbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("uzbbc"), Ok("zbbc"));
+        assert_eq!(alt3::parse("zog"), Ok("og"));
+        assert!(alt3::parse("").is_err());
     }
 
     #[test]
@@ -459,9 +459,9 @@ mod test {
             }
         )
 
-        assert_eq!(zparens("zog"), Ok("og"));
-        assert!(zparens("wat").is_err());
-        assert!(zparens("").is_err());
+        assert_eq!(zparens::parse("zog"), Ok("og"));
+        assert!(zparens::parse("wat").is_err());
+        assert!(zparens::parse("").is_err());
     }
 
     #[test]
@@ -472,7 +472,7 @@ mod test {
             }
         )
 
-        assert_eq!(vowels_abc("oof"), Ok("of"));
-        assert_eq!(vowels_abc("abc"), Ok("bc"));
+        assert_eq!(vowels_abc::parse("oof"), Ok("of"));
+        assert_eq!(vowels_abc::parse("abc"), Ok("bc"));
     }
 }
