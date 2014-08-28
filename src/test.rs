@@ -151,6 +151,12 @@ mod test {
             }
         )
 
+        auk!(
+            grammar parenstar {
+                start = ('z' / "abc" / ["aeiou"])*
+            }
+        )
+
         assert_eq!(zstar("zabc"), Ok("abc"));
         assert_eq!(zstar("zzzzzzzabc"), Ok("abc"));
         assert_eq!(zstar("abc"), Ok("abc"));
@@ -168,6 +174,13 @@ mod test {
         assert_eq!(vowelstar("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
         assert_eq!(vowelstar("cat"), Ok("cat"));
         assert_eq!(vowelstar(""), Ok(""));
+
+        assert_eq!(parenstar("zzzzxy"), Ok("xy"));
+        assert_eq!(parenstar("abcabcabcdef"), Ok("def"));
+        assert_eq!(parenstar("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert_eq!(parenstar("zabczaeoabcuzabc"), Ok(""));
+        assert_eq!(parenstar(""), Ok(""));
+        assert_eq!(parenstar("hello"), Ok("hello"));
     }
 
     #[test]
@@ -196,6 +209,12 @@ mod test {
             }
         )
 
+        auk!(
+            grammar parenplus {
+                start = ('z' / "abc" / ["aeiou"])+
+            }
+        )
+
         assert_eq!(zplus("zabc"), Ok("abc"));
         assert_eq!(zplus("zzzzzzzabc"), Ok("abc"));
         assert!(zplus("abc").is_err());
@@ -213,6 +232,13 @@ mod test {
         assert_eq!(vowelplus("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
         assert!(vowelplus("cat").is_err());
         assert!(vowelplus("").is_err());
+
+        assert_eq!(parenplus("zzzzxy"), Ok("xy"));
+        assert_eq!(parenplus("abcabcabcdef"), Ok("def"));
+        assert_eq!(parenplus("oiiaeuooaToaoaoiii"), Ok("Toaoaoiii"));
+        assert_eq!(parenplus("zabczaeoabcuzabc"), Ok(""));
+        assert!(parenplus("").is_err());
+        assert!(parenplus("hello").is_err());
     }
 
     #[test]
