@@ -83,6 +83,7 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
         match parser.token {
             libsyn::RBRACE => break,
             libsyn::EOF => break,
+            libsyn::RPAREN => break,
             _ => choices.push(parse_rule_choice(parser)),
         }
     }
@@ -94,12 +95,19 @@ fn parse_rule_expr(parser: &mut libsyn::Parser) -> Expression {
     }
 }
 
+// parse a sequence of chunks. this forms one "choice", e.g. if we have the
+// the expression:
+//
+//     choice1 / choice2 / ...
+//
+// then this function will parse choice1
 fn parse_rule_choice(parser: &mut libsyn::Parser) -> Expression {
     let mut chunks = vec!();
     loop {
         match parser.token {
             libsyn::RBRACE => break,
             libsyn::EOF => break,
+            libsyn::RPAREN => break,
             libsyn::BINOP(libsyn::SLASH) => {
                 parser.bump();
                 break;
@@ -186,7 +194,18 @@ fn parse_primary(parser: &mut libsyn::Parser) -> Expression {
                 _ => fail!("Character class has the form '[\"<chars>\"]'"),
             }
 
-        }
+        },
+        libsyn::LPAREN => {
+            parser.bump();
+            let expr = parse_rule_expr(parser);
+            match parser.token {
+                libsyn::RPAREN => {
+                    parser.bump();
+                    expr
+                },
+                _ => fail!("Mismatched parens"),
+            }
+        },
         _ => {
             fail!("Couldn't find any non-prefix to parse");
         },
@@ -291,5 +310,12 @@ mod test {
         let sess = new_parse_sess();
         let mut p = new_parser("![\"abc\"]+ / 'e'*", &sess);
         assert!( is_variant1!(parse_rule_expr(&mut p), Alt) );
+    }
+
+    #[test]
+    fn test_parse_parens() {
+        let sess = new_parse_sess();
+        let mut p = new_parser("!([\"abc\"]+ / ('e' \"abc\")*)", &sess);
+        assert!( is_variant1!(parse_rule_expr(&mut p), NegLookahead) );
     }
 }

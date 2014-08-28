@@ -88,6 +88,12 @@ mod test {
             }
         )
 
+        auk!(
+            grammar parenopt {
+                start = ('z' / "abc" / ["aeiou"])?
+            }
+        )
+
         assert_eq!(zopt("zabc"), Ok("abc"));
         assert_eq!(zopt("abc"), Ok("abc"));
         assert_eq!(zopt(""), Ok(""));
@@ -108,6 +114,15 @@ mod test {
         assert_eq!(vowelopt("u"), Ok(""));
         assert_eq!(vowelopt("cat"), Ok("cat"));
         assert_eq!(vowelopt(""), Ok(""));
+
+        assert_eq!(parenopt("zabc"), Ok("abc"));
+        assert_eq!(parenopt("abcabcabcdef"), Ok("abcabcdef"));
+        assert_eq!(parenopt("abbc"), Ok("bbc"));
+        assert_eq!(parenopt("ebbc"), Ok("bbc"));
+        assert_eq!(parenopt("ibbc"), Ok("bbc"));
+        assert_eq!(parenopt("obbc"), Ok("bbc"));
+        assert_eq!(parenopt("ubbc"), Ok("bbc"));
+        assert_eq!(parenopt("hello"), Ok("hello"));
     }
 
     #[test]
@@ -408,5 +423,18 @@ mod test {
         assert_eq!(alt3("uzbbc"), Ok("zbbc"));
         assert_eq!(alt3("zog"), Ok("og"));
         assert!(alt3("").is_err());
+    }
+
+    #[test]
+    fn test_parens() {
+        auk!(
+            grammar zparens {
+                start = ((('z')))
+            }
+        )
+
+        assert_eq!(zparens("zog"), Ok("og"));
+        assert!(zparens("wat").is_err());
+        assert!(zparens("").is_err());
     }
 }
