@@ -69,6 +69,11 @@ fn generate_parser_expr(
                 }
             )
         },
+        Nonterminal(n) => {
+            quote_expr!(cx,
+                $n($input_ident)
+            )
+        },
         PosLookahead(ref e) => {
             let parser = generate_parser_expr(cx, &**e, input_ident);
             quote_expr!(cx,
