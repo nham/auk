@@ -437,4 +437,16 @@ mod test {
         assert!(zparens("wat").is_err());
         assert!(zparens("").is_err());
     }
+
+    #[test]
+    fn test_greedy_choice() {
+        auk!(
+            grammar vowels_abc {
+                start = ["aeiou"] / "abc"
+            }
+        )
+
+        assert_eq!(vowels_abc("oof"), Ok("of"));
+        assert_eq!(vowels_abc("abc"), Ok("bc"));
+    }
 }
