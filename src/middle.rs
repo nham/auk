@@ -11,6 +11,8 @@ struct Grammar_<N> {
     pub start: N,
 }
 
+// just convert the Vec of rules into a HashMap of rules, where each rule 
+// ident is the key and the expression on the right hand side is the value
 pub fn convert(g: front::Grammar) -> Option<Grammar> {
     let mut map = HashMap::new();
     let start = g.rules[0].name.clone();
