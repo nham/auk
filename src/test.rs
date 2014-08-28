@@ -485,7 +485,27 @@ mod test {
             }
         )
 
+        auk!(
+            grammar exp_recognizer {
+                exp = num '+' num
+                    / num '-' num
+                    / num '*' num
+                    / num '/' num
+                    / num
+                dig = ["0123456789"]
+                num = dig+
+            }
+        )
+
         assert_eq!(vowels_abc::parse("oof"), Ok("of"));
         assert_eq!(vowels_abc::parse("abc"), Ok(""));
+
+        assert!(exp_recognizer::parse("").is_err());
+        assert_eq!(exp_recognizer::parse("1"), Ok(""));
+        assert_eq!(exp_recognizer::parse("123"), Ok(""));
+        assert_eq!(exp_recognizer::parse("123 + 45"), Ok(""));
+        assert_eq!(exp_recognizer::parse("123 - 45"), Ok(""));
+        assert_eq!(exp_recognizer::parse("123 * 45"), Ok(""));
+        assert_eq!(exp_recognizer::parse("123 / 45"), Ok(""));
     }
 }
