@@ -105,6 +105,18 @@ fn parse_rule_expr(parser: &mut libsyn::Parser)
             libsyn::RBRACE => break,
             libsyn::EOF => break,
             libsyn::RPAREN => break,
+            libsyn::IDENT(_, _) => {
+                if parser.look_ahead(1, |t| t == &libsyn::EQ) {
+                    // This means that we're at the next rule? so stop parsing?
+                    break
+                } else {
+                    // code duplication :(
+                    match parse_rule_choice(parser) {
+                        Err(e) => return Err(e),
+                        Ok(expr) => choices.push(expr),
+                    }
+                }
+            },
             _ =>
                 match parse_rule_choice(parser) {
                     Err(e) => return Err(e),
@@ -143,6 +155,7 @@ fn parse_rule_choice(parser: &mut libsyn::Parser)
             _ =>
                 match parse_rule_chunk(parser) {
                     Ok(expr) => chunks.push(expr),
+                    Err(NextRule) => break, // this smells bad to me
                     Err(e) => return Err(e),
                 },
         }

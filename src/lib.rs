@@ -34,14 +34,15 @@ fn expand(
     match convert(grammar) {
         None => fail!("Conversion didn't work."),
         Some(g) => {
-            let grammar_name = g.name;
             let input = libsyn::Ident::new(libsyn::intern("input"));
 
+            let mut rule_parsers = Vec::new();
+            for (n, e) in g.rules.iter() {
+                rule_parsers.push( generate_parser(cx, *n, e, input));
+            }
+
+            let grammar_name = g.name;
             let start_rule = g.start;
-            let rule_parsers = generate_parser(cx,
-                                               start_rule,
-                                               g.rules.find(&g.start).unwrap(),
-                                               input);
             let qi =
                 quote_item!(cx,
                     mod $grammar_name {

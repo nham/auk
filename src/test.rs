@@ -475,4 +475,17 @@ mod test {
         assert_eq!(vowels_abc::parse("oof"), Ok("of"));
         assert_eq!(vowels_abc::parse("abc"), Ok("bc"));
     }
+
+    #[test]
+    fn test_multiple_rules() {
+        auk!(
+            grammar vowels_abc {
+                arule = ["aeiou"]
+                another = "abc"
+            }
+        )
+
+        assert_eq!(vowels_abc::parse("oof"), Ok("of"));
+        assert_eq!(vowels_abc::parse("abc"), Ok("bc"));
+    }
 }
