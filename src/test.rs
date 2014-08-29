@@ -487,13 +487,14 @@ mod test {
 
         auk!(
             grammar exp_recognizer {
-                exp = num '+' num
-                    / num '-' num
-                    / num '*' num
-                    / num '/' num
-                    / num
+                exp = num sp '+' sp num
+                    / num sp '-' sp num
+                    / num sp '*' sp num
+                    / num sp '/' sp num
+                    / sp num sp
                 dig = ["0123456789"]
                 num = dig+
+                sp = [" \r\n\t"]*
             }
         )
 
